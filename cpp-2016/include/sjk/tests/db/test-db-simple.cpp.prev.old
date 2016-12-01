@@ -1,0 +1,532 @@
+/*/
+#ifdef _WIN32
+#	define _HAS_ITERATOR_DEBUGGING 0
+#endif
+
+#include "../../sjk_macros.h"
+#include "../../../playout_lib/playout_db.h"
+#include "../../sjk_file.h"
+#include "../../sjk_terminal.h"
+#include "sjk_mem.h"
+#include "../../sjk_timing.h"
+#include "../../sjk_collections.h"
+#include "../../sjk_strings.h"
+
+using namespace std;
+using namespace sjk::collections; // vector sorting
+using namespace playout;
+using namespace sjk::db;
+using namespace playout::db;
+
+namespace assert_ctr{
+	uint64_t ctr = 0;
+}
+
+void mem(){
+	cout << "current memory use: " << getCurrentRSS()/1024/1024 << "MB" << endl;
+	cout << "peak memory use: " << getPeakRSS()/1024/1024 << "MB" << endl << endl;
+}
+
+
+void db_write_records(mydb_t& db, size_t howmany = 10000)
+{
+    sjk::timer t;
+    db.seek(0);
+    rec_t r;
+    std::string a("Artist: ");
+    std::string tit("Title: ");
+
+    size_t c = 0;
+    std::string proper_long = " I don't want this string to be sso'd, thanks, and now its waaay too long to fit";
+	
+	// note: using a std::array<> instead here causes clang (3.8) to hang forever
+	static std::vector<std::string> catnames
+	{"A cat", "B cat", "c cat", "D cat", "E cat", "f cat", "G cat", "Z cat",
+		".catname-starts-withdot", "A", "B", "C", "TRANS", "XMAS", "LOVE", "LENNON"};
+
+	while (c < howmany)
+    {
+        std::string num = std::to_string(c);
+
+        std::string temp(a); temp += num;
+        if (c != 0){
+            temp += " I don't want this string to be sso'd, thanks.";
+        }else{
+            temp += proper_long;
+        }
+
+        if (c <= 1){
+            // this enables me to check I am properly null-terminating the string
+            memset(&r.m_data.strvals.artist[0], 1, strings::MAX_STR);
+        }
+		size_t copied = sjk::str::cstring_from_string(&r.m_data.strvals.artist[0], strings::MAX_STR, temp);
+
+		// always the length of the string, plus the terminating null, unless its as big as it can get.
+        if (c == 0){
+            ASSERT(copied == strings::MAX_STR);
+        }
+        if (c == 1){
+            ASSERT(copied == temp.size() + 1);
+        }
+
+        if (c <= 1){
+            // check that I did, in fact, null terminate the string, both for the too long version and the normal case.
+            char pc = *(&r.m_data.strvals.artist[0] + (copied - 1));
+            ASSERT(pc == 0);
+        }
+        if (c == 0){
+            // because it *was* truncated
+            std::string stest(&r.m_data.strvals.artist[0]);
+            ASSERT(stest != temp);
+            ASSERT(stest == temp.substr(0, strings::MAX_STR -1 ));
+        }
+        if (c == 1){
+            std::string stest(&r.m_data.strvals.artist[0]);
+            ASSERT(stest == temp); // because it wasn't truncated
+        }
+
+
+        temp = tit; temp += num;
+		copied = sjk::str::cstring_from_string(&r.m_data.strvals.title[0], strings::MAX_STR, temp);
+        ASSERT(copied == temp.size() + 1 || copied == strings::MAX_STR);
+
+        auto spi = span_from_tones(&r.m_data.tonevals.intros[0], tones::MAX_INTROS);
+        auto sps = span_from_tones(&r.m_data.tonevals.sectones[0], tones::MAX_SECTONES);
+        const size_t s = spi.size(); ASSERT(s == tones::MAX_INTROS);
+
+        for (uint32_t i = 0; i < tones::MAX_INTROS; i++) {
+
+            if (c == 1000){
+                spi[i] = tones::value_type{ 1000 , 1001};
+                sps[i] = tones::value_type{ 1002, 1003 };
+
+                if (i == tones::MAX_INTROS -1){
+                    spi[i] = tones::value_type{ static_cast<uint32_t>(tones::NOT_SET), static_cast<uint32_t>(tones::NOT_SET) };
+                    sps[i] = tones::value_type{ static_cast<uint32_t>(tones::NOT_SET), static_cast<uint32_t>(tones::NOT_SET) };
+                }
+            }else{
+                spi[i] = tones::value_type{ i, i+1 };
+                sps[i] = tones::value_type{ i, i+1 };
+
+                if (i == tones::MAX_INTROS -1){
+                    spi[i] = tones::value_type{ static_cast<uint32_t>(tones::NOT_SET), static_cast<uint32_t>(tones::NOT_SET) };
+                    sps[i] = tones::value_type{ static_cast<uint32_t>(tones::NOT_SET), static_cast<uint32_t>(tones::NOT_SET) };
+                }
+            }
+        }
+
+		for (int i = 0; i < strings::MAX_NUM_CATS; i++)
+		{
+			auto& a = r.m_data.strvals.categories[i];
+			sjk::span<char> catspan(a.data(), a.size());
+			auto copied = catspan.copy(catnames[i]);
+			ASSERT(copied > 0);
+		}
+        db.update(r, true, sjk::db::index_t(c));
+        c++;
+    }
+
+    ASSERT(c == db.record_count() );
+    auto ms = t.stop();
+    cout << "Adding " << howmany << " records took : " << ms << " ms. "
+         << "(" << ms / 1000 << " secs.)" << endl << endl;
+
+}
+
+void read_artists_using_to_string(mydb_t& db)
+{
+	sjk::db::icache* pc = db.cache("artist");
+	mydb_t::row_t rw(0);
+	sjk::timer t;
+	auto cnt = db.record_count();
+	while (rw < cnt)
+	{
+		const std::string& s = pc->to_string(rw);
+		if (rw < 10) {
+			cout << s << ",";
+		}
+		rw++;
+	}
+	cout << endl << endl;
+
+	ASSERT(rw == db.record_count());
+	cout << "reading all " << rw.value() << " artist fields, using to_string() took " << t.stop() << " ms" << endl;
+}
+
+void read_variant_artists(mydb_t& db)
+{
+	sjk::db::icache* pc = db.cache("artist");
+    mydb_t::row_t rw(0);
+    sjk::timer t;
+    auto cnt = db.record_count();
+    while (rw < cnt)
+	{
+		const std::string s(pc->value(rw).cast<std::string>());
+        if (rw < 10){
+            cout << s << ",";
+        }
+        rw++;
+    }
+    cout << endl << endl;
+
+    ASSERT(rw == db.record_count());
+    cout << "reading all " << rw.value() << " VARIANT artist fields took " << t.stop() << " ms" << endl;
+}
+
+
+void read_artists(mydb_t& db)
+{
+	sjk::db::icache* pc = db.cache("artist");
+	cache_t<std::string>* p = dynamic_cast<cache_t<std::string>*>(pc);
+    ASSERT(p);
+
+    mydb_t::row_t rw(0);
+    sjk::timer t;
+    auto cnt = db.record_count();
+	auto& c = p->values();
+    while (rw < cnt)
+    {
+		const std::string& s(c[rw.value()].first);
+        if (rw < 10){
+            cout << s << ",";
+        }
+        rw++;
+    }
+
+    cout << endl << endl;
+    ASSERT(rw == db.record_count());
+    cout << "reading all " << rw.value() << " artist fields took " << t.stop() << " ms" << endl;
+}
+
+
+void read_cats(mydb_t& db)
+{
+	sjk::db::icache* pc = db.cache("category");
+	//sjk::db::multicache_t<std::string>
+	using cache_t = sjk::db::multicache_t<std::string>;
+	auto* p = dynamic_cast<multicache_t<std::string>*>(pc);
+	ASSERT(p);
+
+	cout << "Reading cats (non-variant) ..." << endl;
+
+	mydb_t::row_t rw(0);
+	
+	auto cnt = db.record_count();
+	auto& c = p->values();
+	sjk::timer t;
+	while (rw < cnt)
+	{
+		auto& s(c[rw.value()].first);
+		if (rw < 10) {
+			cout << s;
+		}
+		rw++;
+	}
+
+	cout << "\n";
+	ASSERT(rw == db.record_count());
+	cout << "reading all " << rw.value() << " cats (NOT variant), took: " << t.stop() << " ms" << endl;
+}
+
+void read_cats_variant(mydb_t& db)
+{
+	sjk::db::icache* pc = db.cache("category");
+	cout << "Reading cats (VARIANT) ..." << endl;
+	mydb_t::row_t rw(0);
+	
+	auto cnt = db.record_count();
+	bool failed = false;
+
+	try {
+		auto fail = pc->to_string(rw); //<--correct, throws exception. cats are NOT a string (they are a vector of string)
+	}
+	catch (const std::exception& e) {
+		cout << "ok, expected this exception: " << e.what() << endl;
+		failed = true;
+	}
+
+	ASSERT(failed);
+	sjk::timer t;
+	while (rw < cnt)
+	{
+		auto s = pc->value(rw);
+		if (rw < 10) {
+			cout << s;
+		}
+		rw++;
+	}
+
+	cout << "\n";
+	ASSERT(rw == db.record_count());
+	cout << "reading all " << rw.value() << " cats (VARIANT), took: " << t.stop() << " ms" << endl;
+}
+
+
+
+void read_all(mydb_t& db)
+{
+    mydb_t::row_t rw(0);
+    sjk::timer t;
+
+    for (auto p : db.caches().vec())
+    {
+        auto rc = p->size();
+        rw = sjk::db::row_t::ROW_FIRST;
+        sjk::timer t1;
+        uint32_t iter_count = 0;
+        cout << "Iterating cache: " << p->name() <<", with: " << rc << " items" << " ..." << endl;
+        static constexpr int IS_SECTONE = 1;
+        static constexpr int IS_INTRO = 2;
+        int ty = 0;
+        if (p->name() == "intros") {
+            ty = IS_INTRO;
+        }
+        else if (p->name() == "sectones") {
+            ty = IS_SECTONE;
+        }
+        else {
+            ty = 0;
+        }
+
+
+        while (rw < rc){
+            auto v = p->value(rw);
+            iter_count++;
+            if (rw < 10){
+                if (!v.empty()){
+                    cout << v << ", ";
+                }
+                if (ty == IS_INTRO || ty == IS_SECTONE){
+                    const auto& ht = v.cast<tonevec_t>();
+                    auto sz = ht.size();
+                    ASSERT(sz == 7); // because I set the eighth to an invalid value
+                    uint32_t ctr = 0;
+                    for (const auto& tone : ht)
+                    {
+                        ASSERT(tone.m_head == ctr);
+                        ASSERT(tone.m_tail == ctr + 1)
+                        ctr++;
+                    }
+
+                }
+            }
+            rw++;
+        }
+        cout << endl << "Iterating cache: " << p->name()
+             << " over " << iter_count << " iterations, "
+             << " took " << t1.stop() << " ms."
+             << endl << endl;
+    }
+
+    cout << "Iterating " << db.caches().size() << " caches, each with " << db.record_count()
+         << " records, took: " << t.stop() << " ms." << endl << endl;
+}
+
+void test_delete(mydb_t& db)
+{
+    typedef sjk::db::index_t idx_t;
+    auto rc = db.record_count();
+    size_t i = 0;
+    int delete_count = 0;
+
+    cout << "Testing delete ..." << endl;
+    mem();
+    sjk::timer t;
+    {
+        mydb_t::record_eraser re(db);
+
+        for (i = 0; i < rc; i++)
+        {
+            idx_t idx(i);
+            if (i % 2 == 0) {
+                re.delete_record(idx);
+                delete_count++;
+            }
+        }
+    } // record_eraser goes out of scope
+
+    cout << "mem use (after delete) is: " << endl; mem();
+
+    cout << "Deleting " << delete_count << " records took: " << t.stop() << " ms." << endl;
+    cout << "Record count is now: " << db.record_count() << endl;
+    ASSERT(db.record_count() == (rc / 2));
+
+}
+
+
+int main()
+{
+	//cout << "record size is: " << sizeof(rec_t) << " bytes." << endl;
+    mem();
+	sjk::timer t;
+    bool existed = false;
+    static constexpr bool delete_first = true;
+
+	{
+		std::string spath = sjk::file::tempfile("foo.database");
+		if (sjk::file::exists(spath)) {
+			auto sz = std::experimental::filesystem::file_size(spath);
+			cout << "Existing file: " << spath << " has size: " << sz / 1024 << " kB" << endl;
+			if (sz > 0) {
+				existed = true;
+				assert(existed);
+			}
+			if (delete_first) {
+				sjk::file::delete_file(spath);
+				existed = false;
+			}
+		}
+
+		auto flags = sjk::file::flags_default_create;
+		if (existed) {
+			flags = sjk::file::flags_default;
+		}
+
+		sjk::cfile f(spath, flags);
+		f.close();
+		f.open(spath, sjk::file::flags_default);
+		cout << "Using file: " << spath << endl;
+
+		mydb_t db(f);
+		if (!existed) {
+			size_t to_add = 50000;
+			mem();
+			cout << "You'll need to wait, adding " << to_add << " records ..." << endl;
+			db_write_records(db, to_add);
+		}
+		cout << "Size of " << spath << ": " << f.size_bytes() / 1024 / 1024 << " MB." << endl;
+		mem();
+		cout << "Now populate()ing the db ..." << endl;
+		db.populate();
+		cout << "Populate()ing the db: complete." << endl;
+
+		read_cats(db);
+		mem();
+		read_cats_variant(db);
+
+		mem();
+
+		cout << "Now reading variant artists ..." << endl;
+		ASSERT(cout);
+		read_variant_artists(db);
+
+
+		mem();
+        cout << "Now reading (non-variant) artists ..." << endl;
+		ASSERT(cout);
+        read_artists(db);
+		
+		mem();
+		cout << "Now reading artists, using to_string()" << endl;
+		read_artists_using_to_string(db);
+		ASSERT(cout);
+		cout << "******************************************" << endl;
+
+        sjk::timer sort_timer;
+        mem();
+        cout << "Now sorting artists by index ..." << endl;
+        db.cache(0)->sort(sortable::sortorder::desc, sortable::sortkind::index);
+        cout << "sorting all artists (descending) took: " << sort_timer.stop() << " ms." << endl;
+		ASSERT(cout);
+        mem();
+        cout << "Now sorting artists by value ..." << endl;
+        db.cache(0)->sort(sortable::sortorder::desc, sortable::sortkind::value);
+        cout << "sorting all artists (descending) took: " << sort_timer.stop() << " ms." << endl;
+
+        mem();
+        cout << "Now reading non-variant artists (again) ..." << endl;
+        read_artists(db);
+
+		mem();
+		cout << "Now reading artists, using to_string() (again)" << endl;
+		read_artists_using_to_string(db);
+		ASSERT(cout);
+		cout << "******************************************" << endl;
+
+        mem();
+        cout << "Now reading variant artists (again) ..." << endl;
+        read_variant_artists(db);
+
+        mem();
+        cout << "Now doing a read_all() ..." << endl;
+        read_all(db);
+		ASSERT(cout);
+
+        auto first = db.cache(0)->value(sjk::db::row_t(0));
+        cout << "Currently, first artist is: " << first << endl;
+        cout << "Sorting artists by index now ..." << endl;
+        sjk::timer sorttimer;
+        db.caches().vec().at(0)->sort(sortable::sortorder::desc, sortable::sortkind::index);
+        cout << "Took " << sorttimer.stop() << " ms " << " to sort artist by index." << endl;
+
+        mem();
+
+        first = db.cache(0)->value(sjk::db::row_t(0));
+        cout << "First artist now is: " << first << endl;
+        sjk::timer tsort;
+        cout << "Now sorting sectones by ascending value ..." << endl << endl;
+        ASSERT(db.caches().exists("sectones"));
+
+		ASSERT(cout);
+
+		auto sec_col = db.caches().map().at("sectones");
+        ASSERT(sec_col->name() == "sectones");
+        sec_col->sort(sortable::sortorder::asc, sortable::sortkind::value);
+        const auto& sv = sec_col->value(sjk::db::row_t(0));
+		auto svec = sv.cast<tonevec_t>();
+        ASSERT(svec.size() == 7);
+        ASSERT(svec.at(0).m_head == 0);
+        ASSERT(svec.at(0).m_tail == 1);
+        ASSERT(svec.at(6).m_head == 6);
+		ASSERT(svec.at(6).m_tail == 7);
+        cout << "Sort on sectones took: " << tsort.stop() << " ms." << endl << endl;
+        auto top_index = sec_col->index_at(sjk::db::row_t(50000-1));
+        ASSERT(top_index == 1000);
+
+        mem();
+		ASSERT(cout);
+        tsort.start();
+        sec_col->sort(sortable::sortorder::desc, sortable::sortkind::value);
+        cout << "Sort on sectones (desc) took: " << tsort.stop() << " ms." << endl;
+        const auto& svnow = sec_col->value(sjk::db::row_t(0));
+        const auto& svecnow = svnow.cast<tonevec_t>();
+        top_index = sec_col->index_at(sjk::db::row_t(0));
+        ASSERT(top_index == 1000);
+        ASSERT(svecnow.at(0).m_head == 1002);
+        ASSERT(svecnow.at(0).m_tail == 1003);
+        ASSERT(svec.at(0).m_head == 0); // NB: var() makes a copy, so the old one is different!
+
+        auto& art_col = db.caches().map().at("artist");
+        ASSERT(art_col->size() > 0);
+
+        // for reasonably (fast) lookup, *all* the other columns need to be in
+        // index order
+        art_col->sort(sortable::sortorder::asc, sortable::sortkind::index);
+        auto artval = art_col->value(top_index);
+
+        cout << "The artist for topindex is: " << artval << endl;
+        const std::string sartval = artval.cast<std::string>();
+		ASSERT(sartval.find("Artist: 1000") == 0);
+        cout << "record size is: " << sizeof(rec_t) << " bytes." << endl;
+
+		auto cat_col = db.caches().map().at("category");
+		ASSERT(cat_col);
+		auto vc = cat_col->value(sjk::db::row_t(0));
+		cout << "Categories at index 0 ... " << endl;
+		cout << vc;
+		ASSERT(cout);
+        test_delete(db);
+
+        // after a delete, the caches should have been updated!
+        mem();
+		cout << "***************************************" << endl;
+        cout << "Total execution time: " << t.stop() << " ms." << endl;
+		cout << "***************************************" << endl;
+        sjk::terminal::done("All done.  ... ", false);
+		ASSERT(cout);
+    }
+
+    mem();
+	sjk::terminal::done("All done.  ... ", false);
+}
+/*/
