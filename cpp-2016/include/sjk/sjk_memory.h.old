@@ -1,0 +1,302 @@
+#pragma once
+#ifndef SJK_MEMORY_H
+#define SJK_MEMORY_H
+#include <algorithm>
+#include <cassert>
+#include <cstring> // memcpy
+#include <exception>
+#include <string>
+#include <vector>
+#include <type_traits>
+
+namespace sjk {
+
+using byte = char;
+template <typename T> struct not_null {
+  not_null(T *p) noexcept : m_p(p) { assert(m_p); }
+  constexpr operator const T *() const noexcept { return m_p; }
+  T *operator->() noexcept { return m_p; }
+
+private:
+  T *const m_p;
+}; // not_null <T>
+
+template <typename T, size_t n>
+constexpr size_t array_size(const T (&)[n]) noexcept {
+  return n;
+}
+
+namespace detail {
+template <typename T> struct ptrs {
+
+  using ctc = const T *const;
+  using tc = const T *;
+  explicit ptrs(ctc beg = nullptr, ctc end = nullptr,
+						  tc d = nullptr) noexcept : m_begin((T *)beg),
+													 m_end((T *)end),
+													 m_data((T *)d) {
+	if (m_begin && !m_data)
+	  m_data = m_begin;
+	sanity();
+  }
+  // NOTE here: count, not size: this is not a BYTE count,
+  // its a count of Ts
+  constexpr explicit ptrs(ctc beg, size_t count) noexcept
+	  : m_begin((T *)beg),
+		m_end(m_begin + count),
+		m_data((T *)beg) {}
+  T *m_begin;
+  T *m_end;
+  T *m_data;
+
+  void sanity() noexcept {
+	if (m_begin || m_data || m_end) {
+	  assert(m_data && m_begin && m_end);
+	  assert(m_end >= m_begin);
+	  assert(m_data >= m_begin && m_data <= m_end);
+	}
+  }
+};
+
+} // namespace detail
+
+template <typename T> struct span;
+template <class X> struct has_cont_storage : public std::false_type {};
+template <class X, class A>
+struct has_cont_storage<std::vector<X, A>> : public std::true_type {};
+template <> struct has_cont_storage<std::string> : public std::true_type {};
+
+template <typename B> struct is_span : public std::false_type {};
+template <class Y> struct is_span<span<Y>> : public std::true_type {};
+
+template <typename A, typename B, typename C = A>
+struct is_bigger : public std::false_type {};
+template <typename A, typename B>
+struct is_bigger<A, B, typename std::enable_if<(sizeof(A) > sizeof(B))>::type>
+	: public std::true_type {
+  typedef A type;
+};
+template <typename A, typename B>
+struct is_bigger<A, B, typename std::enable_if<(sizeof(A) < sizeof(B))>::type>
+	: public std::false_type {
+  typedef B type;
+};
+
+template <typename T> struct span {
+public:
+  using ctc = const T *const;
+  using tc = const T *;
+  using ptrs = detail::ptrs<T>;
+  typedef T span_type;
+
+protected:
+  ptrs m_p;
+
+public:
+  constexpr span() noexcept {}
+  span(detail::ptrs<byte> &p) noexcept : m_p(p) {}
+
+  
+  template <typename Q, size_t N> span(const Q (&buf)[N]) noexcept {
+	ptrs pd(buf, buf + N, buf);
+	m_p = pd;
+  }
+
+  template <typename PTR, size_t N> span(const PTR** p, size_t N) noexcept {
+	  ptrs pd(p, p + N, p);
+	  m_p = pd;
+  }
+  
+  span(T* p, const size_t N) {
+	  ptrs pd(p, p + N, p);
+	  m_p = pd;
+  }
+
+  template <typename W, typename U = W>
+  span(W &t, std::enable_if_t<std::is_standard_layout<U>::value> * = 0,
+	   std::enable_if_t<std::is_same<typename std::remove_reference<U>::type,
+									 span_type>::value> * = 0) noexcept {
+	ptrs pd(&t, 1);
+	m_p = pd;
+  }
+
+  template <typename W, typename U = W>
+  span(W &t, std::enable_if_t<std::is_standard_layout<U>::value> * = 0,
+	   std::enable_if_t<!std::is_same<typename std::remove_reference<U>::type,
+									  span_type>::value> * = 0,
+	   std::enable_if_t<!has_cont_storage<U>::value> * = 0) noexcept {
+	  // the type of the span and what we are sending is not the same,
+	  // so the sensible thing to do is convert to bytes:
+	  static_assert(sizeof(span_type) == 1, "expected to be counting in bytes here");
+	ptrs pd(reinterpret_cast<span_type*>(&t), sizeof(t));
+	m_p = pd;
+  }
+
+  template <typename C, typename VS = C>
+  span(const C &c,
+	   std::enable_if_t<has_cont_storage<VS>::value> * = 0) noexcept {
+	ptrs pd(c.data(), c.data() + c.size(), c.data());
+	m_p = pd;
+  }
+
+  const span &operator=(const span &rhs) noexcept {
+	m_p = rhs.m_p;
+	return *this;
+  }
+
+  template <typename R> span &operator=(const R &rhs) noexcept {
+	assign(rhs);
+	return *this;
+  }
+
+  size_t size() const noexcept {
+	size_t sz = (size_t)(m_p.m_end - m_p.m_begin);
+	return sz;
+  }
+  size_t size_bytes() const noexcept {
+	  size_t ret = size();
+	  ret *= sizeof(T);
+	  return ret;
+  }
+  T *begin() const noexcept { return m_p.m_begin; }
+  T *end() const noexcept { return m_p.m_end; }
+  T *data() noexcept { return m_p.m_data; }
+  void sanity() noexcept { m_p.sanity(); }
+  constexpr bool empty() const noexcept { return size() == 0; }
+
+  template <typename R, typename D = R>
+  span &assign(
+	  const R &rhs, std::enable_if_t<is_span<D>::value> * = 0,
+	  std::enable_if_t<
+		  is_bigger<typename std::remove_reference<typename D::span_type>::type,
+					span_type>::value> * = 0) noexcept {
+	rhs.copy(*this);
+	return *this;
+  }
+
+  template <typename R, typename D = R>
+#ifndef SPAN_NARROWING_WARNING_SUPPRESS
+  [[deprecated("This assignment causes a narrowing conversion: possible loss "
+			   "of data...\n #define SPAN_NARROWING_WARNING_SUPPRESS to "
+			   "disablethis warning")]]
+#endif
+	  span &
+	  assign(const R &rhs, std::enable_if_t<is_span<D>::value> * = 0,
+			 std::enable_if_t<!is_bigger<
+				 typename std::remove_reference<typename D::span_type>::type,
+				 span_type>::value> * = 0) noexcept {
+	rhs.copy(*this);
+	return *this;
+  }
+
+  template <typename R, typename D = R>
+  span &
+  assign(const R &rhs, std::enable_if_t<!is_span<D>::value> * = 0,
+		 std::enable_if_t<!is_bigger<typename std::remove_reference<D>::type,
+									 span_type>::value> * = 0) noexcept {
+	ptrs pd(&rhs, 1);
+	m_p = pd;
+	return *this;
+  }
+
+  operator span<byte>() noexcept {
+	detail::ptrs<byte> ptrs((byte *)begin(), size_bytes());
+	span<byte> ret(ptrs);
+	return ret;
+  }
+
+  void ptrs_set(ptrs p) {
+	m_p = p;
+	sanity();
+  }
+
+  template <typename OTHERTYPE> operator span<OTHERTYPE>() const {
+	span<OTHERTYPE> ret;
+	detail::ptrs<OTHERTYPE> pts((OTHERTYPE *)m_p.m_begin,
+								(OTHERTYPE *)m_p.m_end);
+	ret.ptrs_set(pts); // copy won't do anything if we don't do this first.
+	copy(ret);
+	return ret;
+  }
+
+  template <typename C,
+			typename D = std::enable_if_t<has_cont_storage<C>::value>>
+  const span &operator=(const C &c) noexcept {
+	ptrs pd(c.data(), c.data() + c.size(), c.data());
+	m_p = pd;
+  }
+
+#ifdef SPAN_NOEXCEPT_GET_REF
+  operator T &() noexcept {
+	static T t;
+	if (!m_p.m_begin)
+	  return t;
+	return *m_p.m_begin;
+  }
+#else
+  operator T &() {
+	if (!m_p.m_begin)
+	  throw std::runtime_error("sjk::span: Tried to dereference an empty span");
+	return *m_p.m_begin;
+  }
+#endif
+
+  T &operator[](size_t i) {
+#ifndef NDEBUG
+	if (i >= size())
+	  throw std::out_of_range("sjk::span: operator []");
+#endif
+	return *(m_p.m_begin + i);
+  }
+
+
+
+  template <typename SPAN, typename S = SPAN>
+  size_t
+  copy(SPAN &dest,
+	   std::enable_if_t<std::is_same<typename S::span_type, span_type>::value>
+		   * = 0) const noexcept {
+	if (&dest == this)
+	  return 0;
+	assert(!empty()); // resize your storage first
+	if (dest.empty() || empty())
+	  return 0;
+	size_t sz = std::min(size(), dest.size());
+	std::copy(begin(), begin() + sz, dest.data());
+	return sz;
+  }
+
+  template <typename SPAN, typename S = SPAN>
+  size_t
+  copy(SPAN &dest,
+	   std::enable_if_t<!std::is_same<typename S::span_type, span_type>::value>
+		   * = 0) const noexcept {
+	// for differing types of span, we can do a straight memcpy
+	//, if constructors don't need to be called
+	static_assert(std::is_standard_layout<span_type>::value &&
+					  std::is_default_constructible<span_type>::value,
+				  "When copying spans of differing type, both spans must have "
+				  "standard layout.");
+	static_assert(
+		std::is_standard_layout<typename S::span_type>::value &&
+			std::is_default_constructible<typename S::span_type>::value,
+		"When copying spans of differing type, both spans must have standard "
+		"layout.");
+	size_t sz1 = size_bytes();
+	size_t sz2 = dest.size_bytes();
+	if (dest.empty() || empty())
+	  return 0;
+
+	size_t sz = std::min(sz1, sz2);
+	assert(dest.data());
+	assert(begin());
+	memcpy((byte *)dest.data(), (byte *)begin(), sz);
+	// assert("constructors will not be called for a variant of this type" ==
+	// 0);
+
+	return sz;
+  }
+};
+
+} // namespace sjk
+#endif
