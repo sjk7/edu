@@ -24,6 +24,12 @@ namespace sjk
             return ret;
         }
 
+
+		static uintmax_t size(const std::string& filepath) {
+			namespace fs = std::experimental::filesystem;
+			fs::path file(filepath);
+			return  fs::file_size(file);
+		}
         virtual std::string path() override {
             return m_spath;
         }

@@ -287,7 +287,7 @@ namespace playout
             string_from_cstring(t.filepath, dps::Max_Path, tmp);
             tmp = rtrim(tmp);
             if (tmp.find("://") != std::string::npos){
-                std::cout << "this is a stream" << std::endl;
+                std::cout << "this is a stream: " << tmp << std::endl;
             }
             tmp = sjk::str::xplat_file_path(tmp);
             string_from_dps(tmp.data(), tmp.size(), strings.path, strings::MAX_FILE_PATH);

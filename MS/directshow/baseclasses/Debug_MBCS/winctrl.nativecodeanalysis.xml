@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<DEFECTS>
+  <DEFECT>
+    <SFA>
+      <FILEPATH>c:\program files\microsoft sdks\windows\v7.1\samples\multimedia\directshow\baseclasses\</FILEPATH>
+      <FILENAME>checkbmi.h</FILENAME>
+      <LINE>106</LINE>
+      <COLUMN>18</COLUMN>
+    </SFA>
+    <DEFECTCODE>6246</DEFECTCODE>
+    <DESCRIPTION>Local declaration of 'dwWidthInBytes' hides declaration of the same name in outer scope. For additional information, see previous declaration at line '37' of 'c:\program files\microsoft sdks\windows\v7.1\samples\multimedia\directshow\baseclasses\checkbmi.h'.</DESCRIPTION>
+    <FUNCTION>ValidateBitmapInfoHeader</FUNCTION>
+    <DECORATED>ValidateBitmapInfoHeader</DECORATED>
+    <FUNCLINE>32</FUNCLINE>
+    <PATH>
+      <SFA>
+        <FILEPATH>c:\program files\microsoft sdks\windows\v7.1\samples\multimedia\directshow\baseclasses\</FILEPATH>
+        <FILENAME>checkbmi.h</FILENAME>
+        <LINE>37</LINE>
+        <COLUMN>24</COLUMN>
+      </SFA>
+    </PATH>
+  </DEFECT>
+  <DEFECT>
+    <SFA>
+      <FILEPATH>c:\program files\microsoft sdks\windows\v7.1\samples\multimedia\directshow\baseclasses\</FILEPATH>
+      <FILENAME>winctrl.cpp</FILENAME>
+      <LINE>832</LINE>
+      <COLUMN>4</COLUMN>
+    </SFA>
+    <DEFECTCODE>6340</DEFECTCODE>
+    <DESCRIPTION>Mismatch on sign: 'unsigned long' passed as _Param_(4) when some signed type is required in call to 'DbgLogInfo'.</DESCRIPTION>
+    <FUNCTION>CBaseControlWindow::SetWindowPosition</FUNCTION>
+    <DECORATED>?SetWindowPosition@CBaseControlWindow@@UAGJJJJJ@Z</DECORATED>
+    <FUNCLINE>814</FUNCLINE>
+    <PATH></PATH>
+  </DEFECT>
+</DEFECTS>

@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<DEFECTS>
+  <DEFECT>
+    <SFA>
+      <FILEPATH>c:\program files\microsoft sdks\windows\v7.1\samples\multimedia\directshow\baseclasses\</FILEPATH>
+      <FILENAME>combase.h</FILENAME>
+      <LINE>141</LINE>
+      <COLUMN>43</COLUMN>
+    </SFA>
+    <DEFECTCODE>28204</DEFECTCODE>
+    <DESCRIPTION>'NonDelegatingQueryInterface' has an override at `c:\program files\microsoft sdks\windows\v7.1\samples\multimedia\directshow\baseclasses\combase.h(235)` and only the override is annotated for _Param_(2): when an override is annotated, the base (this function) should be similarly annotated.</DESCRIPTION>
+    <FUNCTION></FUNCTION>
+    <DECORATED></DECORATED>
+    <FUNCLINE>0</FUNCLINE>
+    <PATH></PATH>
+  </DEFECT>
+  <DEFECT>
+    <SFA>
+      <FILEPATH>c:\program files\microsoft sdks\windows\v7.1\samples\multimedia\directshow\baseclasses\</FILEPATH>
+      <FILENAME>combase.cpp</FILENAME>
+      <LINE>167</LINE>
+      <COLUMN>0</COLUMN>
+    </SFA>
+    <DEFECTCODE>6340</DEFECTCODE>
+    <DESCRIPTION>Mismatch on sign: 'unsigned long' passed as _Param_(4) when some signed type is required in call to 'DbgLogInfo'.</DESCRIPTION>
+    <FUNCTION>CUnknown::NonDelegatingAddRef</FUNCTION>
+    <DECORATED>?NonDelegatingAddRef@CUnknown@@UAGKXZ</DECORATED>
+    <FUNCLINE>163</FUNCLINE>
+    <PATH></PATH>
+  </DEFECT>
+  <DEFECT>
+    <SFA>
+      <FILEPATH>c:\program files\microsoft sdks\windows\v7.1\samples\multimedia\directshow\baseclasses\</FILEPATH>
+      <FILENAME>combase.cpp</FILENAME>
+      <LINE>182</LINE>
+      <COLUMN>0</COLUMN>
+    </SFA>
+    <DEFECTCODE>6340</DEFECTCODE>
+    <DESCRIPTION>Mismatch on sign: 'unsigned long' passed as _Param_(4) when some signed type is required in call to 'DbgLogInfo'.</DESCRIPTION>
+    <FUNCTION>CUnknown::NonDelegatingRelease</FUNCTION>
+    <DECORATED>?NonDelegatingRelease@CUnknown@@UAGKXZ</DECORATED>
+    <FUNCLINE>175</FUNCLINE>
+    <PATH></PATH>
+  </DEFECT>
+</DEFECTS>

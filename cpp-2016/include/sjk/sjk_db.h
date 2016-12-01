@@ -189,7 +189,9 @@ namespace sjk {
                 }
                 // m_f.seek(0, std::ios_base::end);<-- This makes us *very* slow, so push it
                 // onto the caller.
-                sjk::io::span_t span(r);
+				sjk::io::span_t span(r);
+				auto sz = span.size_bytes(); (void)sz;
+				ASSERT(sz == sizeof(R));
                 m_f.clear_errors();  // important: if a previous read took us to eos,
                 // failbit etc will be set (even if the file is of zero size)
 
@@ -199,6 +201,7 @@ namespace sjk {
                     assert(idx.is_valid());
                 }
                 int64_t wr = m_f.write(span);
+	
                 if (wr != static_cast<int64_t>(span.size_bytes())) {
                     if (errno) {
                         SJK_EXCEPTION("Failed to update record: ", "\nError:", errno,
@@ -228,7 +231,7 @@ namespace sjk {
                * \return false if end of stream, or some exception is thrown.
                */
             inline bool read_record(R& r) {
-                sjk::io::span_t span(r);
+				sjk::io::span_t span(r);
                 auto read = m_f.read(span);
                 if (m_f.at_end()) {
                     return false;

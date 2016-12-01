@@ -367,6 +367,8 @@ int main()
 			std::unique_ptr<mydb_t> pdb = db_make(f, existed, false, spath);
 			cout << "Took " << t.stop() << " ms to create a playout database." << endl;
 			cout << "Number of records: " << pdb->record_count(false) << endl;
+			cout << "File size is: " << (double)sjk::file::size(spath) / 1024.0 / 1024.0 << " MBytes." << endl;
+			cout << endl;
 			assert(num_dps_records == pdb->record_count(false));
 			pdb->populate();
 			cout << "Number of records in the database : " << pdb->record_count() << endl;

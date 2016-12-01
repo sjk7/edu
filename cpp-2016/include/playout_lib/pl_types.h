@@ -187,7 +187,7 @@ namespace playout
                 static constexpr type STREAM_DURATION = DURATION_UNKNOWN;
 		VOLUME_TYPE volume { VOLUME_NOT_SET };
 
-                using SPEED_TYPE = int8_t;
+                using SPEED_TYPE = uint8_t;
                 static constexpr SPEED_TYPE SPEED_NOT_SET = 0;
                 SPEED_TYPE speed {SPEED_NOT_SET};
 

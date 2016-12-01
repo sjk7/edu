@@ -1,0 +1,680 @@
+﻿<?xml version="1.0" encoding="utf-8"?><DEFECTS><DEFECT>
+    <SFA>
+      <FILEPATH>c:\program files\microsoft sdks\windows\v7.1\samples\multimedia\directshow\baseclasses\</FILEPATH>
+      <FILENAME>combase.h</FILENAME>
+      <LINE>141</LINE>
+      <COLUMN>43</COLUMN>
+    </SFA>
+    <DEFECTCODE>28204</DEFECTCODE>
+    <DESCRIPTION>'NonDelegatingQueryInterface' has an override at `c:\program files\microsoft sdks\windows\v7.1\samples\multimedia\directshow\baseclasses\combase.h(235)` and only the override is annotated for _Param_(2): when an override is annotated, the base (this function) should be similarly annotated.</DESCRIPTION>
+    <FUNCTION></FUNCTION>
+    <DECORATED></DECORATED>
+    <FUNCLINE>0</FUNCLINE>
+    <PATH></PATH>
+  </DEFECT><DEFECT>
+    <SFA>
+      <FILEPATH>c:\program files\microsoft sdks\windows\v7.1\samples\multimedia\directshow\baseclasses\</FILEPATH>
+      <FILENAME>combase.cpp</FILENAME>
+      <LINE>167</LINE>
+      <COLUMN>0</COLUMN>
+    </SFA>
+    <DEFECTCODE>6340</DEFECTCODE>
+    <DESCRIPTION>Mismatch on sign: 'unsigned long' passed as _Param_(4) when some signed type is required in call to 'DbgLogInfo'.</DESCRIPTION>
+    <FUNCTION>CUnknown::NonDelegatingAddRef</FUNCTION>
+    <DECORATED>?NonDelegatingAddRef@CUnknown@@UAGKXZ</DECORATED>
+    <FUNCLINE>163</FUNCLINE>
+    <PATH></PATH>
+  </DEFECT><DEFECT>
+    <SFA>
+      <FILEPATH>c:\program files\microsoft sdks\windows\v7.1\samples\multimedia\directshow\baseclasses\</FILEPATH>
+      <FILENAME>combase.cpp</FILENAME>
+      <LINE>182</LINE>
+      <COLUMN>0</COLUMN>
+    </SFA>
+    <DEFECTCODE>6340</DEFECTCODE>
+    <DESCRIPTION>Mismatch on sign: 'unsigned long' passed as _Param_(4) when some signed type is required in call to 'DbgLogInfo'.</DESCRIPTION>
+    <FUNCTION>CUnknown::NonDelegatingRelease</FUNCTION>
+    <DECORATED>?NonDelegatingRelease@CUnknown@@UAGKXZ</DECORATED>
+    <FUNCLINE>175</FUNCLINE>
+    <PATH></PATH>
+  </DEFECT><DEFECT>
+    <SFA>
+      <FILEPATH>c:\program files\microsoft sdks\windows\v7.1\samples\multimedia\directshow\baseclasses\</FILEPATH>
+      <FILENAME>refclock.cpp</FILENAME>
+      <LINE>348</LINE>
+      <COLUMN>0</COLUMN>
+    </SFA>
+    <DEFECTCODE>6340</DEFECTCODE>
+    <DESCRIPTION>Mismatch on sign: 'int' passed as _Param_(4) when some unsigned type is required in call to 'DbgLogInfo'.</DESCRIPTION>
+    <FUNCTION>CBaseReferenceClock::AdviseThread</FUNCTION>
+    <DECORATED>?AdviseThread@CBaseReferenceClock@@AAEJXZ</DECORATED>
+    <FUNCLINE>324</FUNCLINE>
+    <PATH></PATH>
+  </DEFECT><DEFECT>
+    <SFA>
+      <FILEPATH>c:\program files\microsoft sdks\windows\v7.1\samples\multimedia\directshow\baseclasses\</FILEPATH>
+      <FILENAME>renbase.cpp</FILENAME>
+      <LINE>190</LINE>
+      <COLUMN>4</COLUMN>
+    </SFA>
+    <DEFECTCODE>6340</DEFECTCODE>
+    <DESCRIPTION>Mismatch on sign: 'unsigned long' passed as _Param_(4) when some signed type is required in call to 'DbgLogInfo'.</DESCRIPTION>
+    <FUNCTION>CBaseRenderer::DisplayRendererState</FUNCTION>
+    <DECORATED>?DisplayRendererState@CBaseRenderer@@QAEXXZ</DECORATED>
+    <FUNCLINE>173</FUNCLINE>
+    <PATH></PATH>
+  </DEFECT><DEFECT>
+    <SFA>
+      <FILEPATH>c:\program files\microsoft sdks\windows\v7.1\samples\multimedia\directshow\baseclasses\</FILEPATH>
+      <FILENAME>renbase.cpp</FILENAME>
+      <LINE>1223</LINE>
+      <COLUMN>4</COLUMN>
+    </SFA>
+    <DEFECTCODE>6340</DEFECTCODE>
+    <DESCRIPTION>Mismatch on sign: 'unsigned int' passed as _Param_(4) when some signed type is required in call to 'DbgLogInfo'.</DESCRIPTION>
+    <FUNCTION>EndOfStreamTimer</FUNCTION>
+    <DECORATED>?EndOfStreamTimer@@YGXIIKKK@Z</DECORATED>
+    <FUNCLINE>1216</FUNCLINE>
+    <PATH></PATH>
+  </DEFECT><DEFECT>
+    <SFA>
+      <FILEPATH>c:\program files\microsoft sdks\windows\v7.1\samples\multimedia\directshow\baseclasses\</FILEPATH>
+      <FILENAME>renbase.h</FILENAME>
+      <LINE>176</LINE>
+      <COLUMN>39</COLUMN>
+    </SFA>
+    <DEFECTCODE>28204</DEFECTCODE>
+    <DESCRIPTION>'ShouldDrawSampleNow' has an override at `c:\program files\microsoft sdks\windows\v7.1\samples\multimedia\directshow\baseclasses\renbase.h(439)` and only the override is annotated for _Param_(2), _Param_(3): when an override is annotated, the base (this function) should be similarly annotated.</DESCRIPTION>
+    <FUNCTION></FUNCTION>
+    <DECORATED></DECORATED>
+    <FUNCLINE>0</FUNCLINE>
+    <PATH></PATH>
+  </DEFECT><DEFECT>
+    <SFA>
+      <FILEPATH>c:\program files\microsoft sdks\windows\v7.1\samples\multimedia\directshow\baseclasses\</FILEPATH>
+      <FILENAME>schedule.cpp</FILENAME>
+      <LINE>208</LINE>
+      <COLUMN>0</COLUMN>
+    </SFA>
+    <DEFECTCODE>6340</DEFECTCODE>
+    <DESCRIPTION>Mismatch on sign: 'int' passed as _Param_(6) when some unsigned type is required in call to 'DbgLogInfo'.</DESCRIPTION>
+    <FUNCTION>CAMSchedule::AddAdvisePacket</FUNCTION>
+    <DECORATED>?AddAdvisePacket@CAMSchedule@@AAEKPAVCAdvisePacket@1@@Z</DECORATED>
+    <FUNCLINE>190</FUNCLINE>
+    <PATH></PATH>
+  </DEFECT><DEFECT>
+    <SFA>
+      <FILEPATH>c:\program files\microsoft sdks\windows\v7.1\samples\multimedia\directshow\baseclasses\</FILEPATH>
+      <FILENAME>schedule.cpp</FILENAME>
+      <LINE>258</LINE>
+      <COLUMN>0</COLUMN>
+    </SFA>
+    <DEFECTCODE>6340</DEFECTCODE>
+    <DESCRIPTION>Mismatch on sign: 'int' passed as _Param_(5) when some unsigned type is required in call to 'DbgLogInfo'.</DESCRIPTION>
+    <FUNCTION>CAMSchedule::ShuntHead</FUNCTION>
+    <DECORATED>?ShuntHead@CAMSchedule@@AAEXXZ</DECORATED>
+    <FUNCLINE>232</FUNCLINE>
+    <PATH></PATH>
+  </DEFECT><DEFECT>
+    <SFA>
+      <FILEPATH>c:\program files\microsoft sdks\windows\v7.1\samples\multimedia\directshow\baseclasses\</FILEPATH>
+      <FILENAME>schedule.cpp</FILENAME>
+      <LINE>276</LINE>
+      <COLUMN>0</COLUMN>
+    </SFA>
+    <DEFECTCODE>6340</DEFECTCODE>
+    <DESCRIPTION>Mismatch on sign: 'int' passed as _Param_(4) when some unsigned type is required in call to 'DbgLogInfo'.</DESCRIPTION>
+    <FUNCTION>CAMSchedule::DumpLinkedList</FUNCTION>
+    <DECORATED>?DumpLinkedList@CAMSchedule@@QAEXXZ</DECORATED>
+    <FUNCLINE>266</FUNCLINE>
+    <PATH></PATH>
+  </DEFECT><DEFECT>
+    <SFA>
+      <FILEPATH>c:\program files\microsoft sdks\windows\v7.1\samples\multimedia\directshow\baseclasses\</FILEPATH>
+      <FILENAME>strmctl.cpp</FILENAME>
+      <LINE>158</LINE>
+      <COLUMN>0</COLUMN>
+    </SFA>
+    <DEFECTCODE>6340</DEFECTCODE>
+    <DESCRIPTION>Mismatch on sign: 'unsigned long' passed as _Param_(4) when some signed type is required in call to 'DbgLogInfo'.</DESCRIPTION>
+    <FUNCTION>CBaseStreamControl::ExecuteStop</FUNCTION>
+    <DECORATED>?ExecuteStop@CBaseStreamControl@@AAEXXZ</DECORATED>
+    <FUNCLINE>153</FUNCLINE>
+    <PATH></PATH>
+  </DEFECT><DEFECT>
+    <SFA>
+      <FILEPATH>c:\program files\microsoft sdks\windows\v7.1\samples\multimedia\directshow\baseclasses\</FILEPATH>
+      <FILENAME>strmctl.cpp</FILENAME>
+      <LINE>170</LINE>
+      <COLUMN>0</COLUMN>
+    </SFA>
+    <DEFECTCODE>6340</DEFECTCODE>
+    <DESCRIPTION>Mismatch on sign: 'unsigned long' passed as _Param_(4) when some signed type is required in call to 'DbgLogInfo'.</DESCRIPTION>
+    <FUNCTION>CBaseStreamControl::ExecuteStart</FUNCTION>
+    <DECORATED>?ExecuteStart@CBaseStreamControl@@AAEXXZ</DECORATED>
+    <FUNCLINE>165</FUNCLINE>
+    <PATH></PATH>
+  </DEFECT><DEFECT>
+    <SFA>
+      <FILEPATH>c:\program files\microsoft sdks\windows\v7.1\samples\multimedia\directshow\baseclasses\</FILEPATH>
+      <FILENAME>strmctl.cpp</FILENAME>
+      <LINE>313</LINE>
+      <COLUMN>0</COLUMN>
+    </SFA>
+    <DEFECTCODE>6340</DEFECTCODE>
+    <DESCRIPTION>Mismatch on sign: 'unsigned long' passed as _Param_(4) when some signed type is required in call to 'DbgLogInfo'.</DESCRIPTION>
+    <FUNCTION>CBaseStreamControl::CheckStreamState</FUNCTION>
+    <DECORATED>?CheckStreamState@CBaseStreamControl@@QAE?AW4StreamControlState@1@PAUIMediaSample@@@Z</DECORATED>
+    <FUNCLINE>280</FUNCLINE>
+    <PATH></PATH>
+  </DEFECT><DEFECT>
+    <SFA>
+      <FILEPATH>c:\program files\microsoft sdks\windows\v7.1\samples\multimedia\directshow\baseclasses\</FILEPATH>
+      <FILENAME>checkbmi.h</FILENAME>
+      <LINE>106</LINE>
+      <COLUMN>18</COLUMN>
+    </SFA>
+    <DEFECTCODE>6246</DEFECTCODE>
+    <DESCRIPTION>Local declaration of 'dwWidthInBytes' hides declaration of the same name in outer scope. For additional information, see previous declaration at line '37' of 'c:\program files\microsoft sdks\windows\v7.1\samples\multimedia\directshow\baseclasses\checkbmi.h'.</DESCRIPTION>
+    <FUNCTION>ValidateBitmapInfoHeader</FUNCTION>
+    <DECORATED>ValidateBitmapInfoHeader</DECORATED>
+    <FUNCLINE>32</FUNCLINE>
+    <PATH>
+      <SFA>
+        <FILEPATH>c:\program files\microsoft sdks\windows\v7.1\samples\multimedia\directshow\baseclasses\</FILEPATH>
+        <FILENAME>checkbmi.h</FILENAME>
+        <LINE>37</LINE>
+        <COLUMN>24</COLUMN>
+      </SFA>
+    </PATH>
+  </DEFECT><DEFECT>
+    <SFA>
+      <FILEPATH>c:\program files\microsoft sdks\windows\v7.1\samples\multimedia\directshow\baseclasses\</FILEPATH>
+      <FILENAME>winctrl.cpp</FILENAME>
+      <LINE>832</LINE>
+      <COLUMN>4</COLUMN>
+    </SFA>
+    <DEFECTCODE>6340</DEFECTCODE>
+    <DESCRIPTION>Mismatch on sign: 'unsigned long' passed as _Param_(4) when some signed type is required in call to 'DbgLogInfo'.</DESCRIPTION>
+    <FUNCTION>CBaseControlWindow::SetWindowPosition</FUNCTION>
+    <DECORATED>?SetWindowPosition@CBaseControlWindow@@UAGJJJJJ@Z</DECORATED>
+    <FUNCLINE>814</FUNCLINE>
+    <PATH></PATH>
+  </DEFECT><DEFECT>
+    <SFA>
+      <FILEPATH>c:\program files\microsoft sdks\windows\v7.1\samples\multimedia\directshow\baseclasses\</FILEPATH>
+      <FILENAME>winutil.cpp</FILENAME>
+      <LINE>176</LINE>
+      <COLUMN>4</COLUMN>
+    </SFA>
+    <DEFECTCODE>6340</DEFECTCODE>
+    <DESCRIPTION>Mismatch on sign: 'unsigned long' passed as _Param_(4) when some signed type is required in call to 'DbgLogInfo'.</DESCRIPTION>
+    <FUNCTION>CBaseWindow::DoneWithWindow</FUNCTION>
+    <DECORATED>?DoneWithWindow@CBaseWindow@@UAEJXZ</DECORATED>
+    <FUNCLINE>113</FUNCLINE>
+    <PATH></PATH>
+  </DEFECT><DEFECT>
+    <SFA>
+      <FILEPATH>c:\program files\microsoft sdks\windows\v7.1\samples\multimedia\directshow\baseclasses\</FILEPATH>
+      <FILENAME>winutil.cpp</FILENAME>
+      <LINE>182</LINE>
+      <COLUMN>0</COLUMN>
+    </SFA>
+    <DEFECTCODE>6340</DEFECTCODE>
+    <DESCRIPTION>Mismatch on sign: 'unsigned long' passed as _Param_(5) when some signed type is required in call to 'DbgLogInfo'.</DESCRIPTION>
+    <FUNCTION>CBaseWindow::DoneWithWindow</FUNCTION>
+    <DECORATED>?DoneWithWindow@CBaseWindow@@UAEJXZ</DECORATED>
+    <FUNCLINE>113</FUNCLINE>
+    <PATH></PATH>
+  </DEFECT><DEFECT>
+    <SFA>
+      <FILEPATH>c:\program files\microsoft sdks\windows\v7.1\samples\multimedia\directshow\baseclasses\</FILEPATH>
+      <FILENAME>winutil.cpp</FILENAME>
+      <LINE>1943</LINE>
+      <COLUMN>8</COLUMN>
+    </SFA>
+    <DEFECTCODE>6340</DEFECTCODE>
+    <DESCRIPTION>Mismatch on sign: 'unsigned long' passed as _Param_(4) when some signed type is required in call to 'DbgLogInfo'.</DESCRIPTION>
+    <FUNCTION>CImagePalette::CopyPalette</FUNCTION>
+    <DECORATED>?CopyPalette@CImagePalette@@QAEJPBVCMediaType@@PAV2@@Z</DECORATED>
+    <FUNCLINE>1916</FUNCLINE>
+    <PATH></PATH>
+  </DEFECT><DEFECT>
+    <SFA>
+      <FILEPATH>c:\program files\microsoft sdks\windows\v7.1\samples\multimedia\directshow\baseclasses\</FILEPATH>
+      <FILENAME>winutil.cpp</FILENAME>
+      <LINE>2208</LINE>
+      <COLUMN>0</COLUMN>
+    </SFA>
+    <DEFECTCODE>6340</DEFECTCODE>
+    <DESCRIPTION>Mismatch on sign: 'unsigned short' passed as _Param_(4) when some signed type is required in call to 'DbgLogInfo'.</DESCRIPTION>
+    <FUNCTION>CImageDisplay::RefreshDisplayType</FUNCTION>
+    <DECORATED>?RefreshDisplayType@CImageDisplay@@QAEJPAD@Z</DECORATED>
+    <FUNCLINE>2165</FUNCLINE>
+    <PATH></PATH>
+  </DEFECT><DEFECT>
+    <SFA>
+      <FILEPATH>c:\program files\microsoft sdks\windows\v7.1\samples\multimedia\directshow\baseclasses\</FILEPATH>
+      <FILENAME>wxdebug.cpp</FILENAME>
+      <LINE>247</LINE>
+      <COLUMN>28</COLUMN>
+    </SFA>
+    <DEFECTCODE>6340</DEFECTCODE>
+    <DESCRIPTION>Mismatch on sign: 'unsigned long' passed as _Param_(5) when some signed type is required in call to 'StringCchPrintfA'.</DESCRIPTION>
+    <FUNCTION>DbgUniqueProcessName</FUNCTION>
+    <DECORATED>?DbgUniqueProcessName@@YAJPBDPAD@Z</DECORATED>
+    <FUNCLINE>225</FUNCLINE>
+    <PATH></PATH>
+  </DEFECT><DEFECT>
+    <SFA>
+      <FILEPATH>c:\program files\microsoft sdks\windows\v7.1\samples\multimedia\directshow\baseclasses\</FILEPATH>
+      <FILENAME>wxdebug.cpp</FILENAME>
+      <LINE>258</LINE>
+      <COLUMN>32</COLUMN>
+    </SFA>
+    <DEFECTCODE>6340</DEFECTCODE>
+    <DESCRIPTION>Mismatch on sign: 'unsigned long' passed as _Param_(5) when some signed type is required in call to 'StringCchPrintfA'.</DESCRIPTION>
+    <FUNCTION>DbgUniqueProcessName</FUNCTION>
+    <DECORATED>?DbgUniqueProcessName@@YAJPBDPAD@Z</DECORATED>
+    <FUNCLINE>225</FUNCLINE>
+    <PATH></PATH>
+  </DEFECT><DEFECT>
+    <SFA>
+      <FILEPATH>c:\program files\microsoft sdks\windows\v7.1\samples\multimedia\directshow\baseclasses\</FILEPATH>
+      <FILENAME>wxdebug.cpp</FILENAME>
+      <LINE>308</LINE>
+      <COLUMN>20</COLUMN>
+    </SFA>
+    <DEFECTCODE>6400</DEFECTCODE>
+    <DESCRIPTION>Using 'lstrcmpiA' to perform a case-insensitive compare to constant string 'Console'.  Yields unexpected results in non-English locales.</DESCRIPTION>
+    <FUNCTION>DbgInitLogTo</FUNCTION>
+    <DECORATED>?DbgInitLogTo@@YGXPAUHKEY__@@@Z</DECORATED>
+    <FUNCLINE>268</FUNCLINE>
+    <PATH></PATH>
+  </DEFECT><DEFECT>
+    <SFA>
+      <FILEPATH>c:\program files\microsoft sdks\windows\v7.1\samples\multimedia\directshow\baseclasses\</FILEPATH>
+      <FILENAME>wxdebug.cpp</FILENAME>
+      <LINE>316</LINE>
+      <COLUMN>24</COLUMN>
+    </SFA>
+    <DEFECTCODE>6400</DEFECTCODE>
+    <DESCRIPTION>Using 'lstrcmpiA' to perform a case-insensitive compare to constant string 'Debug'.  Yields unexpected results in non-English locales.</DESCRIPTION>
+    <FUNCTION>DbgInitLogTo</FUNCTION>
+    <DECORATED>?DbgInitLogTo@@YGXPAUHKEY__@@@Z</DECORATED>
+    <FUNCLINE>268</FUNCLINE>
+    <PATH></PATH>
+  </DEFECT><DEFECT>
+    <SFA>
+      <FILEPATH>c:\program files\microsoft sdks\windows\v7.1\samples\multimedia\directshow\baseclasses\</FILEPATH>
+      <FILENAME>wxdebug.cpp</FILENAME>
+      <LINE>317</LINE>
+      <COLUMN>24</COLUMN>
+    </SFA>
+    <DEFECTCODE>6400</DEFECTCODE>
+    <DESCRIPTION>Using 'lstrcmpiA' to perform a case-insensitive compare to constant string 'Debugger'.  Yields unexpected results in non-English locales.</DESCRIPTION>
+    <FUNCTION>DbgInitLogTo</FUNCTION>
+    <DECORATED>?DbgInitLogTo@@YGXPAUHKEY__@@@Z</DECORATED>
+    <FUNCLINE>268</FUNCLINE>
+    <PATH></PATH>
+  </DEFECT><DEFECT>
+    <SFA>
+      <FILEPATH>c:\program files\microsoft sdks\windows\v7.1\samples\multimedia\directshow\baseclasses\</FILEPATH>
+      <FILENAME>wxdebug.cpp</FILENAME>
+      <LINE>318</LINE>
+      <COLUMN>24</COLUMN>
+    </SFA>
+    <DEFECTCODE>6400</DEFECTCODE>
+    <DESCRIPTION>Using 'lstrcmpiA' to perform a case-insensitive compare to constant string 'Deb'.  Yields unexpected results in non-English locales.</DESCRIPTION>
+    <FUNCTION>DbgInitLogTo</FUNCTION>
+    <DECORATED>?DbgInitLogTo@@YGXPAUHKEY__@@@Z</DECORATED>
+    <FUNCLINE>268</FUNCLINE>
+    <PATH></PATH>
+  </DEFECT><DEFECT>
+    <SFA>
+      <FILEPATH>c:\program files\microsoft sdks\windows\v7.1\samples\multimedia\directshow\baseclasses\</FILEPATH>
+      <FILENAME>wxdebug.cpp</FILENAME>
+      <LINE>855</LINE>
+      <COLUMN>25</COLUMN>
+    </SFA>
+    <DEFECTCODE>6340</DEFECTCODE>
+    <DESCRIPTION>Mismatch on sign: 'unsigned long' passed as _Param_(6) when some signed type is required in call to 'StringCchPrintfA'.</DESCRIPTION>
+    <FUNCTION>DbgLogInfo</FUNCTION>
+    <DECORATED>?DbgLogInfo@@YAXKKPBDZZ</DECORATED>
+    <FUNCLINE>838</FUNCLINE>
+    <PATH></PATH>
+  </DEFECT><DEFECT>
+    <SFA>
+      <FILEPATH>c:\program files\microsoft sdks\windows\v7.1\samples\multimedia\directshow\baseclasses\</FILEPATH>
+      <FILENAME>wxdebug.cpp</FILENAME>
+      <LINE>934</LINE>
+      <COLUMN>0</COLUMN>
+    </SFA>
+    <DEFECTCODE>6340</DEFECTCODE>
+    <DESCRIPTION>Mismatch on sign: 'unsigned long' passed as _Param_(4) when some signed type is required in call to 'DbgLogInfo'.</DESCRIPTION>
+    <FUNCTION>DbgRegisterObjectCreation</FUNCTION>
+    <DECORATED>?DbgRegisterObjectCreation@@YGKPBDPB_W@Z</DECORATED>
+    <FUNCLINE>887</FUNCLINE>
+    <PATH></PATH>
+  </DEFECT><DEFECT>
+    <SFA>
+      <FILEPATH>c:\program files\microsoft sdks\windows\v7.1\samples\multimedia\directshow\baseclasses\</FILEPATH>
+      <FILENAME>wxdebug.cpp</FILENAME>
+      <LINE>937</LINE>
+      <COLUMN>0</COLUMN>
+    </SFA>
+    <DEFECTCODE>6340</DEFECTCODE>
+    <DESCRIPTION>Mismatch on sign: 'unsigned long' passed as _Param_(4) when some signed type is required in call to 'DbgLogInfo'.</DESCRIPTION>
+    <FUNCTION>DbgRegisterObjectCreation</FUNCTION>
+    <DECORATED>?DbgRegisterObjectCreation@@YGKPBDPB_W@Z</DECORATED>
+    <FUNCLINE>887</FUNCLINE>
+    <PATH></PATH>
+  </DEFECT><DEFECT>
+    <SFA>
+      <FILEPATH>c:\program files\microsoft sdks\windows\v7.1\samples\multimedia\directshow\baseclasses\</FILEPATH>
+      <FILENAME>wxdebug.cpp</FILENAME>
+      <LINE>988</LINE>
+      <COLUMN>0</COLUMN>
+    </SFA>
+    <DEFECTCODE>6340</DEFECTCODE>
+    <DESCRIPTION>Mismatch on sign: 'unsigned long' passed as _Param_(4) when some signed type is required in call to 'DbgLogInfo'.</DESCRIPTION>
+    <FUNCTION>DbgRegisterObjectDestruction</FUNCTION>
+    <DECORATED>?DbgRegisterObjectDestruction@@YGHK@Z</DECORATED>
+    <FUNCLINE>951</FUNCLINE>
+    <PATH></PATH>
+  </DEFECT><DEFECT>
+    <SFA>
+      <FILEPATH>c:\program files\microsoft sdks\windows\v7.1\samples\multimedia\directshow\baseclasses\</FILEPATH>
+      <FILENAME>wxdebug.cpp</FILENAME>
+      <LINE>991</LINE>
+      <COLUMN>0</COLUMN>
+    </SFA>
+    <DEFECTCODE>6340</DEFECTCODE>
+    <DESCRIPTION>Mismatch on sign: 'unsigned long' passed as _Param_(4) when some signed type is required in call to 'DbgLogInfo'.</DESCRIPTION>
+    <FUNCTION>DbgRegisterObjectDestruction</FUNCTION>
+    <DECORATED>?DbgRegisterObjectDestruction@@YGHK@Z</DECORATED>
+    <FUNCLINE>951</FUNCLINE>
+    <PATH></PATH>
+  </DEFECT><DEFECT>
+    <SFA>
+      <FILEPATH>c:\program files\microsoft sdks\windows\v7.1\samples\multimedia\directshow\baseclasses\</FILEPATH>
+      <FILENAME>wxdebug.cpp</FILENAME>
+      <LINE>1020</LINE>
+      <COLUMN>33</COLUMN>
+    </SFA>
+    <DEFECTCODE>6340</DEFECTCODE>
+    <DESCRIPTION>Mismatch on sign: 'unsigned long' passed as _Param_(4) when some signed type is required in call to 'StringCchPrintfA'.</DESCRIPTION>
+    <FUNCTION>DbgDumpObjectRegister</FUNCTION>
+    <DECORATED>?DbgDumpObjectRegister@@YGXXZ</DECORATED>
+    <FUNCLINE>1003</FUNCLINE>
+    <PATH></PATH>
+  </DEFECT><DEFECT>
+    <SFA>
+      <FILEPATH>c:\program files\microsoft sdks\windows\v7.1\samples\multimedia\directshow\baseclasses\</FILEPATH>
+      <FILENAME>wxdebug.cpp</FILENAME>
+      <LINE>1022</LINE>
+      <COLUMN>33</COLUMN>
+    </SFA>
+    <DEFECTCODE>6340</DEFECTCODE>
+    <DESCRIPTION>Mismatch on sign: 'unsigned long' passed as _Param_(4) when some signed type is required in call to 'StringCchPrintfA'.</DESCRIPTION>
+    <FUNCTION>DbgDumpObjectRegister</FUNCTION>
+    <DECORATED>?DbgDumpObjectRegister@@YGXXZ</DECORATED>
+    <FUNCLINE>1003</FUNCLINE>
+    <PATH></PATH>
+  </DEFECT><DEFECT>
+    <SFA>
+      <FILEPATH>c:\program files\microsoft sdks\windows\v7.1\samples\multimedia\directshow\baseclasses\</FILEPATH>
+      <FILENAME>wxdebug.cpp</FILENAME>
+      <LINE>1028</LINE>
+      <COLUMN>25</COLUMN>
+    </SFA>
+    <DEFECTCODE>6340</DEFECTCODE>
+    <DESCRIPTION>Mismatch on sign: 'unsigned long' passed as _Param_(4) when some signed type is required in call to 'StringCchPrintfA'.</DESCRIPTION>
+    <FUNCTION>DbgDumpObjectRegister</FUNCTION>
+    <DECORATED>?DbgDumpObjectRegister@@YGXXZ</DECORATED>
+    <FUNCLINE>1003</FUNCLINE>
+    <PATH></PATH>
+  </DEFECT><DEFECT>
+    <SFA>
+      <FILEPATH>c:\program files\microsoft sdks\windows\v7.1\samples\multimedia\directshow\baseclasses\</FILEPATH>
+      <FILENAME>wxdebug.cpp</FILENAME>
+      <LINE>1288</LINE>
+      <COLUMN>8</COLUMN>
+    </SFA>
+    <DEFECTCODE>6340</DEFECTCODE>
+    <DESCRIPTION>Mismatch on sign: 'const unsigned long' passed as _Param_(4) when some signed type is required in call to 'DbgLogInfo'.</DESCRIPTION>
+    <FUNCTION>DisplayType</FUNCTION>
+    <DECORATED>?DisplayType@@YGXPBDPBU_AMMediaType@@@Z</DECORATED>
+    <FUNCLINE>1268</FUNCLINE>
+    <PATH></PATH>
+  </DEFECT><DEFECT>
+    <SFA>
+      <FILEPATH>c:\program files\microsoft sdks\windows\v7.1\samples\multimedia\directshow\baseclasses\</FILEPATH>
+      <FILENAME>wxdebug.cpp</FILENAME>
+      <LINE>1307</LINE>
+      <COLUMN>0</COLUMN>
+    </SFA>
+    <DEFECTCODE>6340</DEFECTCODE>
+    <DESCRIPTION>Mismatch on sign: 'unsigned long' passed as _Param_(4) when some signed type is required in call to 'DbgLogInfo'.</DESCRIPTION>
+    <FUNCTION>DisplayType</FUNCTION>
+    <DECORATED>?DisplayType@@YGXPBDPBU_AMMediaType@@@Z</DECORATED>
+    <FUNCLINE>1268</FUNCLINE>
+    <PATH></PATH>
+  </DEFECT><DEFECT>
+    <SFA>
+      <FILEPATH>c:\program files\microsoft sdks\windows\v7.1\samples\multimedia\directshow\baseclasses\</FILEPATH>
+      <FILENAME>wxdebug.cpp</FILENAME>
+      <LINE>1348</LINE>
+      <COLUMN>4</COLUMN>
+    </SFA>
+    <DEFECTCODE>6340</DEFECTCODE>
+    <DESCRIPTION>Mismatch on sign: 'const unsigned long' passed as _Param_(4) when some signed type is required in call to 'DbgLogInfo'.</DESCRIPTION>
+    <FUNCTION>DisplayBITMAPINFO</FUNCTION>
+    <DECORATED>?DisplayBITMAPINFO@@YAXPBUtagBITMAPINFOHEADER@@@Z</DECORATED>
+    <FUNCLINE>1346</FUNCLINE>
+    <PATH></PATH>
+  </DEFECT><DEFECT>
+    <SFA>
+      <FILEPATH>c:\program files\microsoft sdks\windows\v7.1\samples\multimedia\directshow\baseclasses\</FILEPATH>
+      <FILENAME>wxdebug.cpp</FILENAME>
+      <LINE>1350</LINE>
+      <COLUMN>0</COLUMN>
+    </SFA>
+    <DEFECTCODE>6340</DEFECTCODE>
+    <DESCRIPTION>Mismatch on sign: 'const unsigned short' passed as _Param_(6) when some signed type is required in call to 'DbgLogInfo'.</DESCRIPTION>
+    <FUNCTION>DisplayBITMAPINFO</FUNCTION>
+    <DECORATED>?DisplayBITMAPINFO@@YAXPBUtagBITMAPINFOHEADER@@@Z</DECORATED>
+    <FUNCLINE>1346</FUNCLINE>
+    <PATH></PATH>
+  </DEFECT><DEFECT>
+    <SFA>
+      <FILEPATH>c:\program files\microsoft sdks\windows\v7.1\samples\multimedia\directshow\baseclasses\</FILEPATH>
+      <FILENAME>wxdebug.cpp</FILENAME>
+      <LINE>1354</LINE>
+      <COLUMN>0</COLUMN>
+    </SFA>
+    <DEFECTCODE>6340</DEFECTCODE>
+    <DESCRIPTION>Mismatch on sign: 'const unsigned short' passed as _Param_(6) when some signed type is required in call to 'DbgLogInfo'.</DESCRIPTION>
+    <FUNCTION>DisplayBITMAPINFO</FUNCTION>
+    <DECORATED>?DisplayBITMAPINFO@@YAXPBUtagBITMAPINFOHEADER@@@Z</DECORATED>
+    <FUNCLINE>1346</FUNCLINE>
+    <PATH></PATH>
+  </DEFECT><DEFECT>
+    <SFA>
+      <FILEPATH>c:\program files\microsoft sdks\windows\v7.1\samples\multimedia\directshow\baseclasses\</FILEPATH>
+      <FILENAME>wxdebug.cpp</FILENAME>
+      <LINE>1359</LINE>
+      <COLUMN>4</COLUMN>
+    </SFA>
+    <DEFECTCODE>6340</DEFECTCODE>
+    <DESCRIPTION>Mismatch on sign: 'const unsigned long' passed as _Param_(4) when some signed type is required in call to 'DbgLogInfo'.</DESCRIPTION>
+    <FUNCTION>DisplayBITMAPINFO</FUNCTION>
+    <DECORATED>?DisplayBITMAPINFO@@YAXPBUtagBITMAPINFOHEADER@@@Z</DECORATED>
+    <FUNCLINE>1346</FUNCLINE>
+    <PATH></PATH>
+  </DEFECT><DEFECT>
+    <SFA>
+      <FILEPATH>c:\program files\microsoft sdks\windows\v7.1\samples\multimedia\directshow\baseclasses\</FILEPATH>
+      <FILENAME>wxdebug.cpp</FILENAME>
+      <LINE>1360</LINE>
+      <COLUMN>4</COLUMN>
+    </SFA>
+    <DEFECTCODE>6340</DEFECTCODE>
+    <DESCRIPTION>Mismatch on sign: 'const unsigned short' passed as _Param_(4) when some signed type is required in call to 'DbgLogInfo'.</DESCRIPTION>
+    <FUNCTION>DisplayBITMAPINFO</FUNCTION>
+    <DECORATED>?DisplayBITMAPINFO@@YAXPBUtagBITMAPINFOHEADER@@@Z</DECORATED>
+    <FUNCLINE>1346</FUNCLINE>
+    <PATH></PATH>
+  </DEFECT><DEFECT>
+    <SFA>
+      <FILEPATH>c:\program files\microsoft sdks\windows\v7.1\samples\multimedia\directshow\baseclasses\</FILEPATH>
+      <FILENAME>wxdebug.cpp</FILENAME>
+      <LINE>1363</LINE>
+      <COLUMN>4</COLUMN>
+    </SFA>
+    <DEFECTCODE>6340</DEFECTCODE>
+    <DESCRIPTION>Mismatch on sign: 'const unsigned long' passed as _Param_(4) when some signed type is required in call to 'DbgLogInfo'.</DESCRIPTION>
+    <FUNCTION>DisplayBITMAPINFO</FUNCTION>
+    <DECORATED>?DisplayBITMAPINFO@@YAXPBUtagBITMAPINFOHEADER@@@Z</DECORATED>
+    <FUNCLINE>1346</FUNCLINE>
+    <PATH></PATH>
+  </DEFECT><DEFECT>
+    <SFA>
+      <FILEPATH>c:\program files\microsoft sdks\windows\v7.1\samples\multimedia\directshow\baseclasses\</FILEPATH>
+      <FILENAME>wxutil.cpp</FILENAME>
+      <LINE>494</LINE>
+      <COLUMN>0</COLUMN>
+    </SFA>
+    <DEFECTCODE>6340</DEFECTCODE>
+    <DESCRIPTION>Mismatch on sign: 'unsigned long' passed as _Param_(4) when some signed type is required in call to 'DbgLogInfo'.</DESCRIPTION>
+    <FUNCTION>CCritSec::Lock</FUNCTION>
+    <DECORATED>?Lock@CCritSec@@QAEXXZ</DECORATED>
+    <FUNCLINE>486</FUNCLINE>
+    <PATH></PATH>
+  </DEFECT><DEFECT>
+    <SFA>
+      <FILEPATH>c:\program files\microsoft sdks\windows\v7.1\samples\multimedia\directshow\baseclasses\</FILEPATH>
+      <FILENAME>wxutil.cpp</FILENAME>
+      <LINE>508</LINE>
+      <COLUMN>12</COLUMN>
+    </SFA>
+    <DEFECTCODE>6340</DEFECTCODE>
+    <DESCRIPTION>Mismatch on sign: 'unsigned long' passed as _Param_(4) when some signed type is required in call to 'DbgLogInfo'.</DESCRIPTION>
+    <FUNCTION>CCritSec::Lock</FUNCTION>
+    <DECORATED>?Lock@CCritSec@@QAEXXZ</DECORATED>
+    <FUNCLINE>486</FUNCLINE>
+    <PATH></PATH>
+  </DEFECT><DEFECT>
+    <SFA>
+      <FILEPATH>c:\program files\microsoft sdks\windows\v7.1\samples\multimedia\directshow\baseclasses\</FILEPATH>
+      <FILENAME>wxutil.cpp</FILENAME>
+      <LINE>486</LINE>
+      <COLUMN>19</COLUMN>
+    </SFA>
+    <DEFECTCODE>26135</DEFECTCODE>
+    <DESCRIPTION>Missing annotation _Acquires_lock_(this-&gt;m_CritSec) at function 'CCritSec::Lock'.</DESCRIPTION>
+    <FUNCTION>CCritSec::Lock</FUNCTION>
+    <DECORATED>?Lock@CCritSec@@QAEXXZ</DECORATED>
+    <FUNCLINE>486</FUNCLINE>
+    <PATH>
+      <SFA>
+        <FILEPATH>c:\program files\microsoft sdks\windows\v7.1\samples\multimedia\directshow\baseclasses\</FILEPATH>
+        <FILENAME>wxutil.cpp</FILENAME>
+        <LINE>486</LINE>
+        <COLUMN>19</COLUMN>
+      </SFA>
+      <SFA>
+        <FILEPATH>c:\program files\microsoft sdks\windows\v7.1\samples\multimedia\directshow\baseclasses\</FILEPATH>
+        <FILENAME>wxutil.cpp</FILENAME>
+        <LINE>488</LINE>
+        <COLUMN>9</COLUMN>
+      </SFA>
+      <SFA>
+        <FILEPATH>c:\program files\microsoft sdks\windows\v7.1\samples\multimedia\directshow\baseclasses\</FILEPATH>
+        <FILENAME>wxutil.cpp</FILENAME>
+        <LINE>489</LINE>
+        <COLUMN>10</COLUMN>
+      </SFA>
+      <SFA>
+        <FILEPATH>c:\program files\microsoft sdks\windows\v7.1\samples\multimedia\directshow\baseclasses\</FILEPATH>
+        <FILENAME>wxutil.cpp</FILENAME>
+        <LINE>490</LINE>
+        <COLUMN>10</COLUMN>
+      </SFA>
+      <SFA>
+        <FILEPATH>c:\program files\microsoft sdks\windows\v7.1\samples\multimedia\directshow\baseclasses\</FILEPATH>
+        <FILENAME>wxutil.cpp</FILENAME>
+        <LINE>491</LINE>
+        <COLUMN>8</COLUMN>
+      </SFA>
+      <SFA>
+        <FILEPATH>c:\program files\microsoft sdks\windows\v7.1\samples\multimedia\directshow\baseclasses\</FILEPATH>
+        <FILENAME>wxutil.cpp</FILENAME>
+        <LINE>502</LINE>
+        <COLUMN>24</COLUMN>
+      </SFA>
+      <SFA>
+        <FILEPATH>c:\program files\microsoft sdks\windows\v7.1\samples\multimedia\directshow\baseclasses\</FILEPATH>
+        <FILENAME>wxutil.cpp</FILENAME>
+        <LINE>503</LINE>
+        <COLUMN>24</COLUMN>
+      </SFA>
+      <SFA>
+        <FILEPATH>c:\program files\microsoft sdks\windows\v7.1\samples\multimedia\directshow\baseclasses\</FILEPATH>
+        <FILENAME>wxutil.cpp</FILENAME>
+        <LINE>486</LINE>
+        <COLUMN>19</COLUMN>
+      </SFA>
+    </PATH>
+  </DEFECT><DEFECT>
+    <SFA>
+      <FILEPATH>c:\program files\microsoft sdks\windows\v7.1\samples\multimedia\directshow\baseclasses\</FILEPATH>
+      <FILENAME>wxutil.cpp</FILENAME>
+      <LINE>517</LINE>
+      <COLUMN>12</COLUMN>
+    </SFA>
+    <DEFECTCODE>6340</DEFECTCODE>
+    <DESCRIPTION>Mismatch on sign: 'unsigned long' passed as _Param_(4) when some signed type is required in call to 'DbgLogInfo'.</DESCRIPTION>
+    <FUNCTION>CCritSec::Unlock</FUNCTION>
+    <DECORATED>?Unlock@CCritSec@@QAEXXZ</DECORATED>
+    <FUNCLINE>513</FUNCLINE>
+    <PATH></PATH>
+  </DEFECT><DEFECT>
+    <SFA>
+      <FILEPATH>c:\program files\microsoft sdks\windows\v7.1\samples\multimedia\directshow\baseclasses\</FILEPATH>
+      <FILENAME>wxutil.cpp</FILENAME>
+      <LINE>513</LINE>
+      <COLUMN>21</COLUMN>
+    </SFA>
+    <DEFECTCODE>26135</DEFECTCODE>
+    <DESCRIPTION>Missing annotation _Releases_lock_(this-&gt;m_CritSec) at function 'CCritSec::Unlock'.</DESCRIPTION>
+    <FUNCTION>CCritSec::Unlock</FUNCTION>
+    <DECORATED>?Unlock@CCritSec@@QAEXXZ</DECORATED>
+    <FUNCLINE>513</FUNCLINE>
+    <PATH>
+      <SFA>
+        <FILEPATH>c:\program files\microsoft sdks\windows\v7.1\samples\multimedia\directshow\baseclasses\</FILEPATH>
+        <FILENAME>wxutil.cpp</FILENAME>
+        <LINE>513</LINE>
+        <COLUMN>21</COLUMN>
+      </SFA>
+      <SFA>
+        <FILEPATH>c:\program files\microsoft sdks\windows\v7.1\samples\multimedia\directshow\baseclasses\</FILEPATH>
+        <FILENAME>wxutil.cpp</FILENAME>
+        <LINE>514</LINE>
+        <COLUMN>13</COLUMN>
+      </SFA>
+      <SFA>
+        <FILEPATH>c:\program files\microsoft sdks\windows\v7.1\samples\multimedia\directshow\baseclasses\</FILEPATH>
+        <FILENAME>wxutil.cpp</FILENAME>
+        <LINE>522</LINE>
+        <COLUMN>24</COLUMN>
+      </SFA>
+      <SFA>
+        <FILEPATH>c:\program files\microsoft sdks\windows\v7.1\samples\multimedia\directshow\baseclasses\</FILEPATH>
+        <FILENAME>wxutil.cpp</FILENAME>
+        <LINE>513</LINE>
+        <COLUMN>21</COLUMN>
+      </SFA>
+    </PATH>
+  </DEFECT></DEFECTS>

@@ -142,7 +142,23 @@ template <typename T> struct span {
 		m_p.m_data = m_p.m_begin;
 	}
 
+	template <typename ANYTHING>
+	span(ANYTHING& t) {
+		static_assert (sizeof(span_type) == 1, "constructing a span from arbitary type: byte type expected for span_type");
+		m_p.m_begin = (span_type*)&t;
+		m_p.m_end = m_p.m_begin + sizeof(t);
+		m_p.m_data = m_p.m_begin;
+	}
 
+	template <typename A>
+	span(span<A>& other) {
+		// I am assuming *this* has type byte
+		static_assert ( sizeof(span_type) == 1, "constructing a span from another span: byte type expected.");
+		m_p.m_begin = (span_type*)other.begin();
+		auto sz = other.size_bytes();
+		m_p.m_end = m_p.m_begin + sz; 
+		m_p.m_data = m_p.m_begin;
+	}
     span(span<T>& other) noexcept : m_p(other.m_p)  {}
     span(span<T>&& other) noexcept : m_p(other.m_p)  {}
 
@@ -164,7 +180,7 @@ template <typename T> struct span {
 	span(const char* s) 
 	{
 		auto sz = strlen(s);
-		m_p.m_begin = s;
+		m_p.m_begin = (T*)s;
 		m_p.m_data = m_p.m_begin;
 		m_p.m_end = m_p.m_begin + sz;
 	}
