@@ -17,6 +17,21 @@ static int g_done = 0;
 #define PLEASE_QUIT 1
 #define ALL_DONE -1
 
+
+void display_time(int totalSeconds, std::string& s)
+{
+	totalSeconds += 86400 * 30 * 6;
+	int seconds = (totalSeconds % 60);
+	int minutes = (totalSeconds % 3600) / 60;
+	int hours = (totalSeconds % 86400) / 3600;
+	int days = (totalSeconds / 86400);
+	
+	static char buf[256];
+	sprintf(buf, "%02d:%02d:%02d:%02d", days, hours, minutes, seconds);
+	s.assign(buf);
+	return;
+}
+
 std::string now(std::string format = "%d/%m/%Y %R")
 {
 	time_t rawtime;
@@ -314,6 +329,7 @@ HRESULT GetPins(IBaseFilter* pFilter, pinvec_t& pins)
 	HR(hr);
 	IPin* pin = NULL; ULONG cFetched = 0;
 
+
 	while (hr == S_OK) {
 		hr = pEnum->Next(1, &pin, &cFetched);
 		if (hr == S_OK) {
@@ -405,7 +421,7 @@ public:
 		}
 		else {
 			if (last > 0) {
-				cout << "Buffering complete" << endl;
+				cout << "Buffering complete." << endl;
 				last = 0;
 			}
 		}
@@ -558,11 +574,11 @@ int app(int argc, char** argv) {
 		HR(hr);
 
 
-		cout << "Geting MPEG Decoder in pin ..." << endl;
+		cout << "Getting MPEG Decoder in pin ..." << endl;
 		hr = GetPin(pins, PINDIR_INPUT, &mpegInPin);
 		HR(hr);
 
-		cout << "Geting MPEG Decoder out pin ..." << endl;
+		cout << "Getting MPEG Decoder out pin ..." << endl;
 		hr = GetPin(pins, PINDIR_OUTPUT, &mpegOutPin);
 		HR(hr);
 
@@ -739,6 +755,8 @@ int app(int argc, char** argv) {
 		// DWORD dwrot = 0;
 		// HRESULT ffs = AddToRot(pGraph, &dwrot);
 		// we essentially play forever
+		std::string stime;
+
 		while (true)
 		{
 			double pos = 0;
@@ -778,7 +796,10 @@ int app(int argc, char** argv) {
 						double curpos = 0;
 						HRESULT myhr = pPos->get_CurrentPosition(&curpos);
 						if (SUCCEEDED(myhr)) {
-							cout << "Elapsed: " << curpos << "\r";
+							// cout << "Elapsed: " << curpos << "\r";
+							curpos += 2592000;
+							display_time((int)curpos, stime);
+							cout << "Elapsed: " << stime << "\r";
 						}
 						if (!set_cb) {
 							set_cb = true;
