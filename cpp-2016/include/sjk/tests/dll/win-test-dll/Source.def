@@ -1,0 +1,3 @@
+LIBRARY win-test-dll
+EXPORTS
+test_a_function @1

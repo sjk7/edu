@@ -138,7 +138,7 @@ namespace sjk {
 		}
 	};
 } // namespace sjk
-//#define FOO(fmt, ...) printf(fmt, ##__VA_ARGS__)
+
 #define SJK_EXCEPTION(...) throw sjk::exception(PRETTY_FUNC,__FILE__, __LINE__, __VA_ARGS__);
 #define SJK_EXCEPT(...) throw sjk::exception(3.14, __VA_ARGS__);
 
