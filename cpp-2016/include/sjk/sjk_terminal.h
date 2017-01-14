@@ -44,7 +44,8 @@ namespace sjk {
             m_bwait_for_return_key(wait_for_return_key)
         {
 			if (wait_for_return_key){
-				exit_msg += "Hit return to exit." ;
+				m_smsg += "Hit return to exit." ;
+				
 			}
         }
 

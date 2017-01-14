@@ -351,7 +351,12 @@ int main()
 {
 	sjk::cfile f;
 	{
-		sjk::terminal term(false);
+#ifdef NDEBUG
+		bool wait_for_return_key = false;
+#else
+		bool wait_for_return_key = true;
+#endif
+		sjk::terminal term(wait_for_return_key);
 		mem();
 #ifdef __linux
 		std::string spath = "/home/steve/Desktop/V_DRIVE/STEVE/converted_from_dps.database";

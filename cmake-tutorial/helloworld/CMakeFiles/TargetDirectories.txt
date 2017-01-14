@@ -1,0 +1,3 @@
+C:/Users/steve/code/cmake-tutorial/helloworld/CMakeFiles/Tutorial.dir
+C:/Users/steve/code/cmake-tutorial/helloworld/CMakeFiles/ALL_BUILD.dir
+C:/Users/steve/code/cmake-tutorial/helloworld/CMakeFiles/ZERO_CHECK.dir
