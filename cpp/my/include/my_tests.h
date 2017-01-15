@@ -7,7 +7,7 @@ namespace my {
 	namespace tests {
 		
 		template <typename T> 
-		void test_move_constructor(const T&) {
+		inline void test_move_constructor(const T&) {
 			T foo;
 			T bar(std::move(foo));
 		}

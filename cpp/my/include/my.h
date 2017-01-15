@@ -100,7 +100,8 @@ namespace my
 
 #ifndef WARN
 #define WARN(what)\
-	my::cout << " WARNING: " << (what);
+	do{ \
+	my::cout << " WARNING: " << #what << my::endl; } while(0)
 #endif
 
 #ifndef NDEBUG

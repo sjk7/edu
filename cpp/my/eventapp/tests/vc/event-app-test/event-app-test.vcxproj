@@ -147,13 +147,13 @@
     <ClCompile Include="..\..\..\..\src\tests\string-test.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\..\..\include\my.h" />
     <ClInclude Include="..\..\..\..\include\my_array.h" />
     <ClInclude Include="..\..\..\..\include\my_memory.h" />
     <ClInclude Include="..\..\..\..\include\my_string.h" />
     <ClInclude Include="..\..\..\..\include\my_string_helpers.h" />
     <ClInclude Include="..\..\..\..\include\my_tests.h" />
     <ClInclude Include="..\..\..\..\include\my_timing.h" />
-    <ClInclude Include="..\..\..\..\my.h" />
     <ClInclude Include="..\..\..\include\conio.h" />
     <ClInclude Include="..\..\..\include\eventapp.h" />
   </ItemGroup>

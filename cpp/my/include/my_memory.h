@@ -6,10 +6,15 @@
 
 namespace my
 {
+	struct no_copy { no_copy() {} no_copy(const no_copy&) = delete; no_copy& operator=(const no_copy& other) = delete; };
+
 	namespace memory
 	{
-
-		template <typename T, typename SZ = int64_t>
+		// What's all this? SIGNED types for memory functions? YES!
+		// It makes mistakes and overruns easier to spot, and you don't have to
+		// litter your code with casts.
+		typedef int64_t size_type;
+		template <typename T, typename SZ = size_type>
 		static inline T* malloc(const SZ sz)
 		{
 			
@@ -18,7 +23,7 @@ namespace my
 			return (T*)::malloc(static_cast<size_t>(sz));
 		}
 
-		template <typename T, typename SZ = int64_t>
+		template <typename T, typename SZ = size_type>
 		static inline T* calloc(const SZ sz, const SZ sz_tcb = 1)
 		{
 			ASSERT(sz_tcb > 0 && "calloc: requested an invalid (negative or zero) size for clearing)");
@@ -27,7 +32,7 @@ namespace my
 			return (T*)::calloc(static_cast<size_t>(sz), static_cast<size_t>(sz_tcb));
 		}
 
-		template <typename T, typename SZ = int64_t>
+		template <typename T, typename SZ = size_type>
 		static inline T* realloc(const T* const p, const SZ sz)
 		{
 			ASSERT(p && "realloc: null pointer passed in!");
@@ -36,7 +41,7 @@ namespace my
 			return (T*)::realloc((void*)p, static_cast<size_t>(sz));
 		}
 				
-		template <typename T, typename SZ = int64_t>
+		template <typename T, typename SZ = size_type>
 		static inline void memcpy(T* dest, const T* src, const SZ sz) {
 			
 			ASSERT(dest && "memcpy: destination is null!"); (void)dest; (void)src; (void)sz;
@@ -47,7 +52,7 @@ namespace my
 
 		}
 
-		template <typename T, typename SZ = int64_t>
+		template <typename T, typename SZ = size_type>
 		static inline void memmove(T* dest, const T* src, const SZ sz) {
 
 			ASSERT(dest && "memcpy: destination is null!"); (void)dest; (void)src; (void)sz;
@@ -59,7 +64,7 @@ namespace my
 		}
 
 
-		template <typename T, typename SZ = int64_t>
+		template <typename T, typename SZ = size_type>
 		static inline void memset(T* dest, const T t, const SZ sz) {
 
 			ASSERT(sz >= 0 && "memset: size is negative!");
@@ -69,7 +74,7 @@ namespace my
 		}
 
 		// Generic pointer struct to help you manage memory.
-		template <typename T, typename ST = int64_t>
+		template <typename T, typename ST = size_type>
 		struct ptrs {
 			using type = T;
 			using size_type = ST;
@@ -84,11 +89,11 @@ namespace my
 		};
 
 		// sbo_t: small buffer optimization (you might want this for strings, arrays, etc).
-		template <typename T, int64_t N = 1024>
+		template <typename T, size_type N = 1024>
 		struct sbo_t
 		{
 			using type = T;
-			using size_type = int64_t;
+			using size_type = size_type;
 			static constexpr int SBO_SIZE = N;
 			T buf[SBO_SIZE];
 			
