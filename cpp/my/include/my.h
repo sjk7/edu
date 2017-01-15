@@ -99,9 +99,9 @@ namespace my
 #define OUT_DEFINED_MY
 
 #ifndef WARN
-#define WARN(what)\
+#define WARN(expr)\
 	do{ \
-	my::cout << " WARNING: " << #what << my::endl; } while(0)
+	if ((expr) )my::cout << " WARNING: " << #expr << my::endl; } while(0)
 #endif
 
 #ifndef NDEBUG
