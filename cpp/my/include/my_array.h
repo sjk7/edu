@@ -19,15 +19,14 @@
 #define WANT_TYPE_TRAITS // we use enable_if
 #endif
 
+#include "my_memory.h"
+
 namespace my {
 	struct no_copy { no_copy() {} no_copy(const no_copy&) = delete; no_copy& operator=(const no_copy& other) = delete; };
 
-
-	void sleep(int64_t ms) { std::this_thread::sleep_for(std::chrono::milliseconds(ms)); }
-
-
 	template <typename T, typename S = int64_t>
 	struct array : no_copy{
+		using size_type = S;
 	private:
 		struct d :no_copy { 
 			struct ptrs {
@@ -53,6 +52,9 @@ namespace my {
 		array(const array& other) { return _copy_from(other); }
 		~array() noexcept { _destroy(); }
 
+		T& operator[](const int idx) {
+			return m_d.m_p.p[idx];
+		}
 
 		S capacity() const noexcept { return m_d.cap; }
 		S size() const { return m_d.m_p.sz; }
@@ -73,7 +75,7 @@ namespace my {
 			if (nw != newsz) {
 				return *this;
 			}
-			memmove((char*)begin() + oldsize, other.data(), sz);
+			memory::memcpy((char*)begin() + oldsize, other.data(), sz);
 			return *this;
 		}
 
@@ -101,7 +103,12 @@ namespace my {
 		// See: http://stackoverflow.com/questions/3279543/what-is-the-copy-and-swap-idiom/3279550#3279550
 		// ////////////////////////////////////////////////////////////////////////////////////////////////
 		// DOES NOT free any memory.
-		void clear() noexcept { 
+		void clear(bool init = false) noexcept { 
+			if (init) {
+				// called from copy constructor, etc
+				m_d = d{};
+				return;
+			}
 			const auto sz = m_d.m_p.sz;
 			m_d.m_p.e = m_d.m_p.p + sz;
 			m_d.m_p.sz = 0;
@@ -167,7 +174,7 @@ namespace my {
 				return *this;
 			}
 			_resize(other.size(), true);
-			memcpy(m_d.p, other.data(), other.size());
+			memory::memcpy(m_d.p, other.data(), other.size());
 			return *this;
 		}
 		void _init() { memset(&m_d, 0, sizeof(d)); }
@@ -183,9 +190,15 @@ namespace my {
 		// output is in BYTES
 		S _mallocsize(const S newsize) {
 			auto so = sizeof(T);
-			auto bytes = so + (GUARD * so) * newsize;
-			bytes *= 2;
-			return bytes;
+			auto bytes = so * newsize;
+			double d((double)bytes);
+			d *= 1.25;
+			bytes = (size_t)((S)d);
+			auto m = bytes % so;
+			bytes += m;
+			assert(bytes % so == 0);
+			bytes += (GUARD * 2); // 2 extra BYTES, regardless of what T is
+			return (int64_t)bytes;
 		}
 
 
@@ -203,15 +216,14 @@ namespace my {
 			}
 			
 			if (!force_smaller) {
-				int64_t free_ele = m_d.m_p.cap - GUARD - 1;
+				int64_t free_ele = m_d.m_p.cap - GUARD - newsize;
 				if (free_ele <= 0) {
 
 				}
 				else {
 					// we have enough room from an earlier resize:
 					auto& p = m_d.m_p;
-					p.sz += 1;
-					p.cap -= 1;
+					p.sz = newsize;
 					return p.sz;
 				}
 			}
@@ -221,15 +233,15 @@ namespace my {
 			assert(ns > 0);
 			if (m_d.m_p.p == 0) {
 				if (initialize) {
-					m_d.m_p.p = (T*)calloc(ns, 1);
+					m_d.m_p.p = my::memory::calloc<T>(ns, (int64_t)1);
 				}
 				else {
-					m_d.m_p.p = (T*)malloc(ns);
+					m_d.m_p.p = my::memory::malloc<T>(ns);
 				}
 				
 			}
 			else {
-				T* ptr = (T*)realloc(m_d.m_p.p, ns);
+				T* ptr = (T*)my::memory::realloc(m_d.m_p.p, ns);
 				if (!ptr) {
 					return m_d.m_p.sz;
 				}
@@ -239,43 +251,39 @@ namespace my {
 
 			
 			if (m_d.m_p.p) { 
-				m_d.m_p.cap = ns / sizeof(T);
+				m_d.m_p.cap = (int64_t)(ns / sizeof(T));
 				m_d.m_p.sz = newsize;
 				m_d.m_p.e = m_d.m_p.p + m_d.m_p.sz; 
 			}
 			else { _init(); }
-			add_termination(m_d.m_p.p);
+			add_termination();
 			return m_d.m_p.sz;
 		}
 
-		template <typename U>
-		typename std::enable_if<!std::is_same<U, char>::value>::type
-			add_termination(U* u = nullptr) {
-			
-			
-		}
 
 		// we always terminate the buffer, so we are always safe to be turned into a string.
-		template <typename U>
-		typename std::enable_if<std::is_same<U, char>::value>::type
-		add_termination(U* u = nullptr) {
+			// NOTE: the termination is always two BYTES,
+			// regardless of what T is
+		void add_termination() {
 
 			if (!m_d.m_p.e) return; // empty means empty, though.
-			U*  myp = m_d.m_p.e;
-			const auto e = m_d.m_p.p + m_d.m_p.cap; // the "real" end (sssh, its a secret!)
+			char*  myp = (char*)m_d.m_p.e;
+			const char* mye = ((const char*)end() )+ GUARD;
+			const char* e = (char*)m_d.m_p.p + m_d.m_p.cap; // the "real" end (sssh, its a secret!)
+			(void)e;
+			auto d = mye - myp; assert(d == 2); (void)d;
+			assert(mye <= e);
+			
+			
+			while (myp < mye) {
+				ASSERT(myp < e);
+				*myp = 0;
 
-			while (myp < e) {
-				*myp = T(0);
-
-				if (myp >= m_d.m_p.p + m_d.m_p.sz + GUARD) {
+				if (myp >= mye + GUARD) {
 					break;
 				}
 				myp++;
 			}
-			auto expected = m_d.m_p.e + 2;
-			auto actual = myp;
-			auto diff = actual - expected;
-			assert(diff == 0); // we *always* terminate whats in the buffer!
 			return;
 		}
 	}; // my::array
