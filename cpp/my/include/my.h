@@ -36,7 +36,9 @@
 #	include<thread>
 #endif
 
-#ifdef WIN32
+#ifdef _WIN32	// NOTE: MSVC and mingw define _WIN32: 
+				// to get WIN32 (no underscore) requires Windows.h 
+				//(which may not be desirable, not included, even on Windows!)
 #	include <conio.h>
 #else
 #	include "../eventapp/include/conio.h"
@@ -53,34 +55,59 @@ namespace my
 	struct endl_s
 	{
 		static T c_str() { 
+#ifdef _WIN32
 			static T rc = "\r\n";
+#else
+			static T rc = "\n";
+#endif
 			return rc;
 		}
 	};
 	
-	template <typename T>
-	struct out
+	#define HAVE_MY_OUTSTREAM
+	struct outstream
 	{
-		using W = decltype(stdout);
-		out(W w = stdout) : m_w(w) {
-#ifndef MY_AVOID_STATIC_INITIALIZER_CHECKS
-			m_ctr++;
-			assert(m_ctr <= 2); // checks only 1 copy per app, 1 cerr, 1 cout
-#endif
-		}
-		void output(const endl_s <const char* const>& s) { (void)s; fprintf(m_w, "%s", s.c_str()); }
-		void output(const int64_t i) { fprintf(m_w, "%" PRId64, i);}
-		void output(const uint64_t i) { fprintf(m_w, "%" PRIu64, i); }
-		void output(const char* s) { fprintf(m_w, "%s", s);	}
-		void output(const double d) { fprintf(m_w, "%f", d);}
+		using W = decltype(stdout); // probably FILE*
+		outstream(W w) : m_w(w){}
+
+		template <typename T>
+		outstream& operator << (const T& t) { output(t); return *this; }
+
+	protected:
+		void output(const uint8_t c) { fprintf(m_w, "%" PRIu8, c); }
+		void output(const int8_t c) { fprintf(m_w, "%" PRId8, c); }
+		void output(const uint16_t c) { fprintf(m_w, "%" PRIu16, c); }
+		void output(const int16_t c) { fprintf(m_w, "%" PRId16, c); }
 		void output(const int32_t i) { fprintf(m_w, "%" PRId32, i); }
 		void output(const uint32_t i) { fprintf(m_w, "%" PRIu32, i); }
-		
-		W file() { return m_w; }
-		template <typename T>
-		out& operator << (const T& t) {	output(t); return *this;}
-	private:
+		void output(const int64_t i) { fprintf(m_w, "%" PRId64, i); }
+		void output(const uint64_t i) { fprintf(m_w, "%" PRIu64, i); }
+		void output(const double d) { fprintf(m_w, "%f", d); }
+		void output(const float d) { fprintf(m_w, "%f", d); }
+		void output(const endl_s <const char* const>& s) { (void)s; fprintf(m_w, "%s", s.c_str()); }
+
+		void output(const char* s) { fprintf(m_w, "%s", s); }
+	
+
 		W m_w;
+	};
+
+	template <typename T>
+	struct out : public outstream
+	{
+		
+		out(W w = stdout) : outstream(w) {
+#ifndef MY_AVOID_STATIC_INITIALIZER_CHECKS
+			if (w == stdout || w == stderr) {
+				m_ctr++;
+				assert(m_ctr <= 2); // checks only 1 copy per app, 1 cerr, 1 cout
+			}
+#endif
+		}
+	
+		W file() { return m_w; }
+		
+	private:
 		static int m_ctr;
 		
 	};
@@ -89,7 +116,8 @@ namespace my
 
 #ifndef DEFINED_MY_OUTS
 #	define DEFINED_MY_OUTS
-	static my::out<decltype(stdout)> cout(stdout);
+	typedef my::out<decltype(stdout)> cout_t;
+	static cout_t cout(stdout);
 	static my::out<decltype(stderr)> cerr(stderr);
 	static my::endl_s<const char* const> endl;
 #endif

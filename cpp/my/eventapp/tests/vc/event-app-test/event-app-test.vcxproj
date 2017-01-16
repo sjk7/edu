@@ -144,23 +144,30 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\..\src\tests\buffer-test.cpp" />
+    <ClCompile Include="..\..\..\..\src\tests\buffer-test.cpp.v1">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="..\..\..\..\src\tests\string-test.cpp-old">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="..\..\..\..\src\tests\test-memory.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\..\include\my.h" />
-    <ClInclude Include="..\..\..\..\include\my_array.h" />
+    <ClInclude Include="..\..\..\..\include\my_array.h.v1" />
     <ClInclude Include="..\..\..\..\include\my_array_old.h" />
-    <ClInclude Include="..\..\..\..\include\my_memory.h" />
-    <ClInclude Include="..\..\..\..\include\my_string.h" />
+    <ClInclude Include="..\..\..\..\include\my_memory.h.v1" />
+    <ClInclude Include="..\..\..\..\include\my_string.h.v1" />
     <ClInclude Include="..\..\..\..\include\my_string_helpers.h" />
     <ClInclude Include="..\..\..\..\include\my_tests.h" />
     <ClInclude Include="..\..\..\..\include\my_timing.h" />
+    <ClInclude Include="..\..\..\..\include\my_type_safe.h" />
     <ClInclude Include="..\..\..\include\conio.h" />
     <ClInclude Include="..\..\..\include\eventapp.h" />
   </ItemGroup>
