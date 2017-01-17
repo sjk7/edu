@@ -7,6 +7,7 @@
 #		pragma warning(disable : 4820) // x bytes of padding after data member in struct, etc.
 #		pragma warning(disable : 4514) // unreferenced inline function has been removed.
 #		pragma warning(disable : 4464) // include path contains (..). AFAIC, this is a convenient feature, not a bug!
+#		pragma warning(disable : 4711) // function x was selected for automatic inline expansion
 #	endif
 #endif
 
@@ -85,7 +86,7 @@ namespace my
 		void output(const double d) { fprintf(m_w, "%f", d); }
 		void output(const float d) { fprintf(m_w, "%f", d); }
 		void output(const endl_s <const char* const>& s) { (void)s; fprintf(m_w, "%s", s.c_str()); }
-
+		void output(const char& c) { fprintf(m_w, "%c", c); }
 		void output(const char* s) { fprintf(m_w, "%s", s); }
 	
 
@@ -130,6 +131,12 @@ namespace my
 #define WARN(expr)\
 	do{ \
 	if ((expr) )my::cout << " WARNING: " << #expr << my::endl; } while(0)
+#endif
+
+#ifdef MY_ASSERTS_IN_RELEASE_MODE
+#	ifdef NDEBUG
+#	undef NDEBUG
+#	endif
 #endif
 
 #ifndef NDEBUG

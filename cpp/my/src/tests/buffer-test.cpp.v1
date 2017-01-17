@@ -1,5 +1,5 @@
 // buffer-test.cpp
-
+#		pragma warning(disable : 4464) // include path contains (..). AFAIC, this is a convenient feature, not a bug!
 #include "../../include/my.h"
 #include "../../include/my_array.h"
 
