@@ -1,6 +1,6 @@
 // test-memory.cpp
 
-#include "../../include/my.h"
+
 #include "../../include/my_memory.h"
 #include "../../include/my_storage.h"
 
@@ -15,7 +15,7 @@ int main()
 {
 	my::posint positive;
 	cout << "positive maximum value = " << my::posint::maxi() << endl;
-	cout << my::posint::maxi() / my::storage::TERABYTE << " TeraBytes." << endl;
+	cout << (my::posint::maxi() / my::storage::TERABYTE) << " TeraBytes." << endl;
 
 	cout << "positive maximum value = " << my::posint::mini() << endl;
 	cout << "positive=" << positive << endl;
@@ -38,6 +38,9 @@ int main()
 		cout << c;
 		
 	}
+	cout << endl;
+
+	cout << "size in bytes: " << sp.size_in_bytes() << endl;
 	cout << endl;
 }
 

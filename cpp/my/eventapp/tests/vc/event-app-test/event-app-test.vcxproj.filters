@@ -45,10 +45,13 @@
     <ClInclude Include="..\..\..\..\include\my_type_safe.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\..\include\my_memory.h">
+    <ClInclude Include="..\..\..\..\include\my_storage.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\..\include\my_storage.h">
+    <ClInclude Include="..\..\..\..\include\my_memory_helpers.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\include\my_memory.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

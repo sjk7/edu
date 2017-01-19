@@ -17,8 +17,9 @@ namespace my
 		static constexpr T mini() { return min_value; }
 		static constexpr T maxi() { return max_value; }
 
-		// Explicit conversion to get back the impl:
-		operator T() const { return m_val; }
+		
+		operator T() const { 	return static_cast<T>(m_val); 	}
+		intptr_t iptr_t() const{ return static_cast<intptr_t>(m_val); }
 		friend bool operator==(const minmax_t& a, const minmax_t& b) { return a.m_val == b.m_val; }
 		friend bool operator!=(const minmax_t& a, const minmax_t& b) { return a.m_val != b.m_val; }
 
@@ -88,11 +89,16 @@ namespace my
 		}
 		num& operator=(const T&& other) { this->assign(other); return *this; }
 		
+		
 	};
 
 	struct fake_t {};
 	using posint = num<fake_t, int64_t, 0>;
 	struct fake_neg_t {};
 	using negint = num<fake_neg_t, int64_t, std::numeric_limits<int>::min(), 0>;
+
+	
+	struct cb_t {};
+	using bysz_t = num<cb_t, int64_t, 0>;
 
 } // namespace my

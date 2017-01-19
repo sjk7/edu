@@ -94,10 +94,10 @@ namespace my
 	};
 
 	template <typename T>
-	struct out : public outstream
+	struct out_t : public outstream
 	{
 		
-		out(W w = stdout) : outstream(w) {
+		out_t(W w = stdout) : outstream(w) {
 #ifndef MY_AVOID_STATIC_INITIALIZER_CHECKS
 			if (w == stdout || w == stderr) {
 				m_ctr++;
@@ -113,15 +113,16 @@ namespace my
 		
 	};
 	template <typename T>
-	int out<T>::m_ctr = 0; // ODL not violated for templates
+	int out_t<T>::m_ctr = 0; // ODL not violated for templates
 
 #ifndef DEFINED_MY_OUTS
 #	define DEFINED_MY_OUTS
-	typedef my::out<decltype(stdout)> cout_t;
+	typedef my::out_t<decltype(stdout)> cout_t;
 	static cout_t cout(stdout);
-	static my::out<decltype(stderr)> cerr(stderr);
+	static my::out_t<decltype(stderr)> cerr(stderr);
 	static my::endl_s<const char* const> endl;
 #endif
+
 }
 
 #ifndef OUT_DEFINED_MY

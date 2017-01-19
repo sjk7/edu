@@ -162,6 +162,7 @@
     <ClInclude Include="..\..\..\..\include\my.h" />
     <ClInclude Include="..\..\..\..\include\my_array.h.v1" />
     <ClInclude Include="..\..\..\..\include\my_memory.h" />
+    <ClInclude Include="..\..\..\..\include\my_memory_helpers.h" />
     <ClInclude Include="..\..\..\..\include\my_memory.h.v1" />
     <ClInclude Include="..\..\..\..\include\my_storage.h" />
     <ClInclude Include="..\..\..\..\include\my_string.h.v1" />
