@@ -40,6 +40,7 @@ namespace sjk {
             }
 
             bool is_valid() const { return m_t != ROW_BAD; }
+			static row_type zero() { return row_type(0); }
 
             const vt& value() const { return m_t; }
 
@@ -49,7 +50,7 @@ namespace sjk {
                 return *this;
             }
             row_type operator++(int) {
-                row_type temp = *this;
+                const row_type temp = *this;
                 ++*this;
                 return temp;
             }
@@ -124,7 +125,7 @@ namespace sjk {
             core(const core& other) = delete;
             core& operator=(const core& other) = delete;
 
-            static index_t record_index_first() { return index_t(0); }
+            static index_t record_index_first() { return index_t::zero(); }
 
             int64_t record_count(bool include_erased = false) const {
                 using namespace std;
@@ -190,7 +191,7 @@ namespace sjk {
                 // m_f.seek(0, std::ios_base::end);<-- This makes us *very* slow, so push it
                 // onto the caller.
 				sjk::io::span_t span(r);
-				auto sz = span.size_bytes(); (void)sz;
+				const auto sz = span.size_bytes(); (void)sz;
 				ASSERT(sz == sizeof(R));
                 m_f.clear_errors();  // important: if a previous read took us to eos,
                 // failbit etc will be set (even if the file is of zero size)
@@ -200,7 +201,7 @@ namespace sjk {
                 } else {
                     assert(idx.is_valid());
                 }
-                int64_t wr = m_f.write(span);
+                const int64_t wr = m_f.write(span);
 	
                 if (wr != static_cast<int64_t>(span.size_bytes())) {
                     if (errno) {
@@ -232,7 +233,7 @@ namespace sjk {
                */
             inline bool read_record(R& r) {
 				sjk::io::span_t span(r);
-                auto read = m_f.read(span);
+                const auto read = m_f.read(span);
                 if (m_f.at_end()) {
                     return false;
                 }
@@ -290,20 +291,20 @@ namespace sjk {
                 // we *have* to read a record before we delete it,
                 // since we are overwriting the whole record. If we
                 // don't, and we undelete later, the record will be empty!
-                auto recpos = record_position(index);
+                const auto recpos = record_position(index);
                 m_f.seek(recpos);
-                auto pos = m_f.position();
+                const auto pos = m_f.position();
 
                 R r;
 
-                bool ok = read_record(r);
+                const bool ok = read_record(r);
                 if (!ok) {
                     assert(ok);
                     SJK_EXCEPTION("cannot delete a record if I can't read it first.");
                 }
 
                 r.info.flags |= flags_options::ERASED;
-                auto sk = m_f.seek(pos);
+                const auto sk = m_f.seek(pos);
                 if (sk != pos) {
                     assert(sk == pos);
                     SJK_EXCEPTION(

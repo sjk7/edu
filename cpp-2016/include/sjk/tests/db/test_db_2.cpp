@@ -1,6 +1,6 @@
 #ifdef _WIN32
 #	define _HAS_ITERATOR_DEBUGGING 0
-#define _SCL_SECURE 0
+#	define _SCL_SECURE 0
 #endif
 
 
@@ -259,7 +259,7 @@ int64_t  import_dps(const std::string& filepath, std::string dps_path = "")
 	playout::db::dps_import::importer imp(dps_path);
 	cout << "Getting data from the dps file took: " << t.stop() << " ms." << endl;
 	cout << "Max Number of DPS records to import: " << imp.m_lib.m_vec.size() << endl;
-	mem();
+	// mem();
 	
 	int64_t total = static_cast<int64_t>(imp.m_lib.m_vec.size());
 	const auto& v = imp.m_lib.m_vec;
@@ -288,7 +288,7 @@ int64_t  import_dps(const std::string& filepath, std::string dps_path = "")
 
 	
 	cout << "Took " << t.stop() << " ms to import a dps library." << endl;
-	mem();
+	// mem();
 	cout << "Imported " << pdb->record_count() << " records" << endl;
 	cout << "DB file size is: " << pdb->file_size() / 1024 / 1024 << " MB." << endl;
 	cout << "DPS library imported from had a file size of: " << imp.m_lib.m_f.size_bytes() / 1024 / 1024 << " MB." << endl;
@@ -357,7 +357,7 @@ int main()
 		bool wait_for_return_key = true;
 #endif
 		sjk::terminal term(wait_for_return_key);
-		mem();
+		// mem();
 #ifdef __linux
 		std::string spath = "/home/steve/Desktop/V_DRIVE/STEVE/converted_from_dps.database";
 #else

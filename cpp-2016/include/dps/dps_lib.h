@@ -130,10 +130,10 @@ namespace dps
 
 			const size_t sz = sizeof(tex);
 
-			double fsize = static_cast<double>(m_f.size_bytes());
-			double ds = (double)sz;
-			double div = fsize / ds;
-			int idiv = static_cast<int>(div);
+			const double fsize = static_cast<double>(m_f.size_bytes());
+			const double ds = (double)sz;
+			const double div = fsize / ds;
+			const int idiv = static_cast<int>(div);
 			if ( (double)idiv != div ) {
 				SJK_EXCEPTION("DPS lib size mismatch for file: ", m_spath, idiv, div);
 			}
@@ -141,7 +141,7 @@ namespace dps
 			
 			sjk::span<char> sp((char*)m_vec.data(), m_vec.size() * sizeof(tex));
 			assert(sp.size_bytes() == idiv * sizeof(tex));
-			int64_t actual_read = m_f.read(sp);
+			const int64_t actual_read = m_f.read(sp);
                         assert(static_cast<size_t>(actual_read) == m_vec.size() * sizeof(tex)); (void)actual_read;
 
 		}
@@ -165,7 +165,7 @@ namespace dps
 		sjk::str::vec_t ret;
 		if (s.empty()) return sjk::str::vec_t{ "NOCAT" };
 		sjk::str::to_upper(s);
-		auto f = s.find(CATSEP);
+		const auto f = s.find(CATSEP);
 		if (f == std::string::npos){
 			ret.push_back(s);
 		}

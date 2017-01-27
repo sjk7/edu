@@ -20,6 +20,8 @@
 #endif
 
 
-#include <Windows.h>
+#ifdef WANT_WINDOWS_H
+#	include <Windows.h>
+#endif
 
 #endif // #ifndef __linux

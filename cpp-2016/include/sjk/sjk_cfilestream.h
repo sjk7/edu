@@ -40,7 +40,7 @@ namespace sjk {
         cfilestream(const std::string& path, io::flags::flag_t f = io::flags::defaults) : m_f(0)
         {
             (void)f;
-            int rc = open(path, "rb+", true);
+            const int rc = open(path, "rb+", true);
             if (rc) {
                 SJK_EXCEPTION("cfilestream failed in open, with return value: ", rc);
             }
@@ -68,7 +68,7 @@ namespace sjk {
             m_spath = path;
             m_f = fopen(path.c_str(), mode.c_str());
             if (!m_f) {
-                int e = errno;
+                const int e = errno;
                 if (e == ENOENT) {
                     if (allowed_create_if_not_exist) {
                         std::string s("wb+");
@@ -90,7 +90,7 @@ namespace sjk {
         }
 
         int64_t read(io::span_t& into)  {
-            int64_t r = read(into.begin(), into.size_bytes());
+            const int64_t r = read(into.begin(), into.size_bytes());
             return r;
 
         }
@@ -103,7 +103,7 @@ namespace sjk {
         }
 
         int64_t write(const io::span_t& sp) {
-            int64_t w = write(sp.begin(), sp.size_bytes());
+            const int64_t w = write(sp.begin(), sp.size_bytes());
             return w;
         }
 
@@ -155,9 +155,9 @@ namespace sjk {
             }
         }
         size_t size_bytes() const {
-            size_t was = pos();
+            const size_t was = pos();
             _fseeki64_nolock(m_f, 0, SEEK_END);
-            size_t sz = pos();
+            const size_t sz = pos();
             _fseeki64_nolock(m_f, was, SEEK_SET);
             return (size_t)sz;
         }

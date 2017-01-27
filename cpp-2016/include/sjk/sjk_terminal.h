@@ -2,10 +2,7 @@
 #ifndef SJK_TERMINAL_INCLUDED
 #define SJK_TERMINAL_INCLUDED
 
-
-#ifdef _WIN32
-#include "sjk_windows.h"
-#endif
+#include "sjk_exception.h"
 
 #ifdef _MSC_VER
 #	pragma warning(disable: 26495)
@@ -14,6 +11,7 @@
 #	pragma warning(disable: 26491) // casts warning
 #endif
 
+/*/
 #	ifdef _WIN32
 #		ifndef _INC_WINDOWS
 #			ifndef IGNORE_NO_WINDOWS_H
@@ -21,6 +19,7 @@
 #			endif
 #		endif
 #		endif
+/*/
 
 #include <iostream>
 #include <utility>

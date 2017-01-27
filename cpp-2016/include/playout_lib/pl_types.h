@@ -250,16 +250,17 @@ namespace playout
 	template <typename CMP = tones::less >
 	static inline bool compare_multi_tones(const tonevec_t& v1, const tonevec_t& v2)
 	{
-		CMP c;
+		//CMP c;
 		const size_t cnt = std::min(v1.size(), v2.size());
 		ASSERT(v1.size() == v2.size()); // need to handle the case where the vectors may not
 		// be of equal size, but we still need to know if *one* value in the larger-sized vector
 		// is greater (or less) than any value in the smaller one.
-		for (size_t i = 0; i < cnt; i++)
+		size_t i = 0;
+		for (i = 0; i < cnt; i++)
 		{
 			auto& ht1 = v1[i]; auto& ht2 = v2[i];
 			// I think its enough to check where *any* head is (nominally) less (or greater) than any other head
-			return c(ht1.m_head, ht2.m_head);
+			return CMP()(ht1.m_head, ht2.m_head);
 		}
 		return false;
 	}

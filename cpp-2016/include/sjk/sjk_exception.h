@@ -2,6 +2,7 @@
 #ifndef SJK_EXCEPTION_H
 #define SJK_EXCEPTION_H
 
+#define WANT_WINDOWS_H
 #ifdef _WIN32
 #include "sjk_windows.h"
 #endif

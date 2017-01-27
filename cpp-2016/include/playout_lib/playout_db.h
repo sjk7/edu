@@ -23,10 +23,10 @@ namespace playout
             typedef std::pair<tones::value_type, idx_t > tonepair_t;
             typedef std::pair< std::vector<std::string> , idx_t > strvecpair_t;
 
-            static inline void make_multi_str_pair()
-            {
+            //static inline void make_multi_str_pair()
+            //{
 
-            }
+            //}
 
             typedef std::vector<icache_t*> cachevec_t;
             typedef sjk::collections::name_values<icache_t*> cache_coll_t;
@@ -52,13 +52,16 @@ namespace playout
 
             virtual ~mydb_t(){}
 
+#ifdef _MSC_VER
+#	pragma warning (disable : 26496)
+#endif
             void reserve(const int64_t sz){
-                for (auto p : m_caches){
-                    p->reserve((sz));
+                for (auto const p : m_caches){
+                    p->reserve(sz);
                 }
             }
             void clear(){
-                for (auto p : m_caches){
+                for (auto const p : m_caches){
                     p->clear();
                 }
                 base::clear();
@@ -86,7 +89,7 @@ namespace playout
                 int64_t ctr = 0;
                 seek(record_position(base::record_index_first()));
 
-                auto rc = record_count();
+                const auto rc = record_count();
 
                 const size_t sz = sizeof(r);
                 if (m_f.size_bytes() % sz != 0){
@@ -143,7 +146,7 @@ namespace playout
                     ctr++;
                 }; // while read_record(r)
 
-                auto recs = record_count(); (void)recs;
+                const auto recs = record_count(); (void)recs;
                 ASSERT(ctr == recs);
                 ASSERT(artvec.size() == static_cast<size_t>(ctr) );
                 ASSERT(titvec.size() == static_cast<size_t>(ctr));
@@ -154,10 +157,13 @@ namespace playout
 
             sjk::var value(const std::string& cacheid,  const row_t rw)
             {
-                auto x = m_caches.from_key(cacheid);
+                const auto x = m_caches.from_key(cacheid);
                 return x->value(rw);
             }
 
+#ifdef _MSC_VER
+#	pragma warning (default : 26496)
+#endif
             icache* cache(const std::string& name){
                 return m_caches.from_key(name);
             }
@@ -207,10 +213,12 @@ namespace playout
                                  * \param expected : how many records you expect to delete.
                                  */
             void delete_complete(const int64_t expected) {
-
+#ifdef _MSC_VER
+#	pragma warning (disable : 26496)
+#endif
                 (void)expected;
                 for (auto p : m_caches) {
-                    auto num = p->delete_erased(); (void)num;
+                    const auto num = p->delete_erased(); (void)num;
                     if (p->size()) {
                         ASSERT(num == expected);
                     }
@@ -228,12 +236,16 @@ namespace playout
                 m_state = state::deleting;
             }
 
+#ifdef _MSC_VER
+#	pragma warning (default : 26496)
+#endif
+
             bool delete_record(const sjk::db::index_t idx) {
                 ASSERT(m_state == state::deleting);
                 base::delete_record(idx);
                 size_t ok = 0;
                 for (auto p : m_caches) {
-                    bool er = p->mark_erased(idx); (void)er;
+                    const bool er = p->mark_erased(idx); (void)er;
                     ASSERT(er);
                     const auto sz = p->size();
                     if (sz) {
@@ -251,7 +263,7 @@ namespace playout
         static inline void cats_from_vector(const sjk::str::vec_t& cats, playout::strings& strs) {
                 using namespace sjk::str;
                 size_t i = 0;
-                auto myset = dps::cat_set_from_vec(cats);
+                const auto myset = dps::cat_set_from_vec(cats);
                 for (const auto& catname : myset)
                 {
                         if (i >= strings::MAX_NUM_CATS - 1) break; // hit category limit
@@ -267,6 +279,10 @@ namespace playout
             }
             return yr;
         }
+
+#ifdef _MSC_VER
+#	pragma warning (disable : 26496)
+#endif
 
         static inline void record_from_dps_strings(const dps::TFIXEDTONINFOEX& ton, rec_t& r)
         {
@@ -316,9 +332,13 @@ namespace playout
             if (ddur < -1){
                 return tones::STREAM_DURATION;
             }
-            tones::type ret = static_cast<tones::type>(ddur * 1000);
+            const tones::type ret = static_cast<tones::type>(ddur * 1000);
             return ret;
         }
+
+#ifdef _MSC_VER
+#	pragma warning (default : 26496)
+#endif
 
         tones::VOLUME_TYPE volume_sanitize(tones::VOLUME_TYPE dpsvol){
             tones::VOLUME_TYPE vol = dpsvol;
@@ -355,7 +375,7 @@ namespace playout
 
         tones::SPEED_TYPE speed_sanitize(double dps_speed)
         {
-            int i = static_cast<int>(dps_speed * 100.0);
+            const int i = static_cast<int>(dps_speed * 100.0);
             if (i == 0 || i == 100){
                 return tones::SPEED_NOT_SET;
             }else{

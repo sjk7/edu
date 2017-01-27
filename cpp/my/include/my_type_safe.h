@@ -19,6 +19,7 @@ namespace my
 
 		
 		operator T() const { 	return static_cast<T>(m_val); 	}
+		
 		intptr_t iptr_t() const{ return static_cast<intptr_t>(m_val); }
 		friend bool operator==(const minmax_t& a, const minmax_t& b) { return a.m_val == b.m_val; }
 		friend bool operator!=(const minmax_t& a, const minmax_t& b) { return a.m_val != b.m_val; }
@@ -45,7 +46,8 @@ namespace my
 		using me = arithmetic<Tag, T, min_value, max_value, default_value>;
 		using mybase = minmax_t<Tag, T, min_value, max_value, default_value>;
 	public:
-		T operator+(const T& other) { this->m_val += other; this->bounds_check(); return this->m_val; }
+		// T operator+(const T& other) { this->m_val += other; this->bounds_check(); return this->m_val; }
+
 		T operator-(const T& other) { this->m_val -= other; this->bounds_check(); return this->m_val; }
 		T operator++() { T t = this->m_val; this->m_val++; this->bounds_check(); return t; }
 		T& operator++(const int) { ++this->m_val; this->bounds_check(); return this->m_val; }
@@ -78,6 +80,7 @@ namespace my
 
 
 	public:
+		using type = T;
 		num() {this->assign(default_value); }
 		num(const T&& other) { this->assign(other); }
 		num(const size_t other) { 
@@ -89,16 +92,23 @@ namespace my
 		}
 		num& operator=(const T&& other) { this->assign(other); return *this; }
 		
-		
+		T value() const { return static_cast<T>(m_val); }
+		size_t to_size_t() const{ return static_cast<size_t>(m_val); }
 	};
 
 	struct fake_t {};
-	using posint = num<fake_t, int64_t, 0>;
+	using posint = num<fake_t, ptrdiff_t, 0>;
 	struct fake_neg_t {};
-	using negint = num<fake_neg_t, int64_t, std::numeric_limits<int>::min(), 0>;
+	using negint = num<fake_neg_t, ptrdiff_t, std::numeric_limits<int>::min(), 0>;
 
 	
-	struct cb_t {};
-	using bysz_t = num<cb_t, int64_t, 0>;
+	struct fake_cb_t {};
+	// use this to count bytes, as opposed to sz_t for count of Ts
+	using bysz_t = num<fake_cb_t, ptrdiff_t, 0>;
+
+
+
+	struct fake_by_t_ {};
+	using byte_t = num<fake_by_t_, ptrdiff_t>;
 
 } // namespace my

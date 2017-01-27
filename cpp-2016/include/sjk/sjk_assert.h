@@ -2,6 +2,10 @@
 #ifndef SJK_ASSERT_H
 #define SJK_ASSERT_H
 
+#ifdef _MSC_VER
+#	pragma warning (disable : 26461)
+#endif
+
 #include <cstdint>
 #include <cassert>
 
@@ -13,7 +17,7 @@ namespace assert_ctr
 } // namespace assert_ctr
 
 #ifndef ASSERT
-#define ASSERT(x) assert_ctr::ctr++; assert(x);
+#	define ASSERT(x) assert_ctr::ctr++; assert(x);
 #endif
 
 #endif // SJK_ASSERT_H

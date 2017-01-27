@@ -88,6 +88,7 @@ namespace my
 		void output(const endl_s <const char* const>& s) { (void)s; fprintf(m_w, "%s", s.c_str()); }
 		void output(const char& c) { fprintf(m_w, "%c", c); }
 		void output(const char* s) { fprintf(m_w, "%s", s); }
+		void output(const void* pv) { intptr_t i = intptr_t(pv); fprintf(m_w, "%" PRIuPTR, i); }
 	
 
 		W m_w;
@@ -115,18 +116,33 @@ namespace my
 	template <typename T>
 	int out_t<T>::m_ctr = 0; // ODL not violated for templates
 
+
 #ifndef DEFINED_MY_OUTS
 #	define DEFINED_MY_OUTS
-	typedef my::out_t<decltype(stdout)> cout_t;
-	static cout_t cout(stdout);
-	static my::out_t<decltype(stderr)> cerr(stderr);
-	static my::endl_s<const char* const> endl;
+	extern out_t<decltype(stdout)> cout;
+	extern out_t<decltype(stderr)> cerr;
+	extern endl_s<const char* const> endl;
 #endif
 
-}
+
+} // namespace my
+
+
+
 
 #ifndef OUT_DEFINED_MY
 #define OUT_DEFINED_MY
+
+#define MY_DECLARE_OUTSTREAMS() \
+my::out_t<decltype(stdout)> my::cout = my::out_t<decltype(stdout)>(stdout);\
+my::out_t<decltype(stderr)> my::cerr = my::out_t<decltype(stdout)>(stdout);\
+my::endl_s<const char* const> my::endl = my::endl_s<const char* const>();\
+using my::cout;\
+using my::cerr;\
+using my::endl;
+
+
+
 
 #ifndef WARN
 #define WARN(expr)\

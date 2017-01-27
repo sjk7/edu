@@ -6,8 +6,11 @@
 #ifndef STRICT
 #define STRICT
 #endif
-#define WIN32_LEAN_AND_MEAN
-#include <Windows.h>
+
+#ifdef WANT_WINDOWS_H
+#	define WIN32_LEAN_AND_MEAN
+#	include <Windows.h>
+#endif
 
 #include "sjk_io.h"
 #include "sjk_exception.h"

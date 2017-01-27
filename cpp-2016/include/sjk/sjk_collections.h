@@ -141,7 +141,7 @@ namespace sjk
 			auto it = std::remove_if(v.begin(), v.end(),
 				[&](VT& pr){return pr.second == match;}
 			);
-			auto diff = static_cast<std::ptrdiff_t>(std::distance(it, v.end()));
+			const auto diff = static_cast<std::ptrdiff_t>(std::distance(it, v.end()));
 			v.erase(it, v.end());
 			assert(diff >= 0);
 			return static_cast<size_t>(diff);

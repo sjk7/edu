@@ -206,12 +206,12 @@ namespace sjk {
             }
 
             virtual index_t index_at(const row_t& row) override {
-                auto& pr = this->at(row.value());
+                const auto& pr = this->at(row.value());
                 return pr.second;
             }
             virtual int64_t size() const override { return VT::size(); }
             virtual int64_t delete_erased() override {
-                auto ret = remove_if_bad(*this);
+                const auto ret = remove_if_bad(*this);
                 return ret;
             }
             virtual bool mark_erased(const row_t& idx) override {
