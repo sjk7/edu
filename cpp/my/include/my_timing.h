@@ -2,7 +2,7 @@
 #ifndef _TIMING_H_INCLUDED_
 #define _TIMING_H_INCLUDED_
 
-
+#include "my.h"
 
 #include <chrono>
 #include <thread>
@@ -45,6 +45,7 @@ namespace my {
 		timer_t elapsed() const {
 			// cover the case where sum1 called stop() without start()
 			if (m_start == 0) return 0;
+			m_finish = my::timer();
 			if (m_finish < m_start) return 0;
 			return m_finish - m_start;
 		}
@@ -52,7 +53,7 @@ namespace my {
 		virtual ~stopwatch() {}
 	private:
 		timer_t m_start;
-		timer_t m_finish;
+		mutable timer_t m_finish;
 	};
 } // namespace chl
 
