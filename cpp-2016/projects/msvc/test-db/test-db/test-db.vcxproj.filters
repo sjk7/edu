@@ -92,5 +92,8 @@
     <ClInclude Include="..\..\..\..\include\dps\dps_lib.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\..\include\sjk\sjk_progress.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

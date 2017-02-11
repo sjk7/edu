@@ -15,46 +15,10 @@
 using std::cout;
 using std::endl;
 
-namespace assert_ctr {
-    uint64_t ctr = 0;
-}
-
 using playout::db::mydb_t;
 using dbptr_t = std::unique_ptr<mydb_t>;
 
-dbptr_t db_make(sjk::cfile& f, bool& existed, bool delete_first = true, std::string spath = sjk::file::tempfile("foo.database"))
-{
-    existed = false;
 
-
-    if (sjk::file::exists(spath)) {
-        auto sz = std::experimental::filesystem::file_size(spath);
-        cout << "Existing file: " << spath << " has size: " << sz / 1024 << " kB" << endl;
-        if (sz > 0) {
-            existed = true;
-            assert(existed);
-        }
-        if (delete_first) {
-            sjk::file::delete_file(spath);
-            existed = false;
-        }
-    }
-
-    auto flags = sjk::file::flags_default_create;
-    if (existed) {
-        flags = sjk::file::flags_default;
-    }
-
-    f.open(spath, flags);
-	if (delete_first){
-		f.close();
-		f.open(spath, sjk::file::flags_default);
-	}
-    cout << "Using file: " << spath << endl;
-
-    // mydb_t db(f);
-    return std::make_unique<mydb_t>(f);
-}
 
 void db_append_records(mydb_t& db, int64_t howmany = 10000)
 {
@@ -138,7 +102,7 @@ void db_append_records(mydb_t& db, int64_t howmany = 10000)
 
         auto spi = span_from_tones(&r.m_data.tonevals.intros[0], tones::MAX_INTROS);
         auto sps = span_from_tones(&r.m_data.tonevals.sectones[0], tones::MAX_SECTONES);
-        const size_t s = spi.size(); ASSERT(s == tones::MAX_INTROS);
+		const size_t s = spi.size(); ASSERT(s == tones::MAX_INTROS); (void)s;
 
         for (uint32_t i = 0; i < tones::MAX_INTROS; i++) {
 
@@ -238,66 +202,7 @@ void sort_tones_descending(mydb_t& db) {
 }
 
 
-int64_t  import_dps(const std::string& filepath, std::string dps_path = "")
-{
-	
-	sjk::cfile f;
-	assert(!filepath.empty());
-	bool existed = false;
-	std::unique_ptr<mydb_t> pdb = db_make(f, existed, true, filepath);
 
-	cout << "Please wait, importing data from dps library ..." << endl;
-	sjk::timer t;
-	if (dps_path.empty()){
-#ifdef _WIN32
-	dps_path = "V:\\STEVE\\MyDocs\\hugelib\\NewLib.dat";
-#else
-	dps_path = "../../Desktop/V_DRIVE/STEVE/MyDocs/hugelib/NewLib.dat";
-#endif
-	}
-
-	playout::db::dps_import::importer imp(dps_path);
-	cout << "Getting data from the dps file took: " << t.stop() << " ms." << endl;
-	cout << "Max Number of DPS records to import: " << imp.m_lib.m_vec.size() << endl;
-	// mem();
-	
-	int64_t total = static_cast<int64_t>(imp.m_lib.m_vec.size());
-	const auto& v = imp.m_lib.m_vec;
-	int ctr = 0;
-	int num_del = 0;
-	using rec_t = playout::db::rec_t;
-	using playout::strings;
-	using playout::tones;
-	rec_t r;
-	sjk::db::index_t idx(0);
-	t.start();
-	pdb->seek(0, std::ios_base::end);
-
-	for (const auto& ton : v)
-	{
-		if (ton.toninfo.markedaserased || ton.toninfo.ispopulated == 0) {
-			num_del++;
-		}
-		else {
-			playout::db::record_from_dps(ton, r);
-			pdb->update(r, true, idx);
-		}
-		
-		ctr++;
-	}
-
-	
-	cout << "Took " << t.stop() << " ms to import a dps library." << endl;
-	// mem();
-	cout << "Imported " << pdb->record_count() << " records" << endl;
-	cout << "DB file size is: " << pdb->file_size() / 1024 / 1024 << " MB." << endl;
-	cout << "DPS library imported from had a file size of: " << imp.m_lib.m_f.size_bytes() / 1024 / 1024 << " MB." << endl;
-	
-	cout << endl <<  "Actual number of populated and unerased records is: " << total - num_del << endl;
-	// cout << "filesize div sizeof records = " << pdb->file_size() / sizeof(r) << endl;
-	return total - num_del;
-
-}
 
 /*/
 int main()
@@ -347,6 +252,23 @@ int main()
 }
 /*/
 
+struct myprogress : public sjk::progress::iprogress
+{
+	virtual int on_progress(const INT val, const INT max, const sjk::progress::state_t state , const char* const info) const {
+		if (val > 0 && max > 0) {
+			double pc = (double)val / (double)max;
+			sjk::terminal::print_progress(pc);
+		}
+		if (state == sjk::progress::state_t::STARTING) {
+			if (info) std::cout << info << std::endl;
+		}else if (state == sjk::progress::state_t::FINISHED) {
+			sjk::terminal::print_progress(1.0f);
+			std::cout << std::endl << " Took " << this->taken() << " ms." << endl;
+		}
+		return 0;
+	}
+};
+
 int main()
 {
 	sjk::cfile f;
@@ -359,23 +281,34 @@ int main()
 		sjk::terminal term(wait_for_return_key);
 		// mem();
 #ifdef __linux
-		std::string spath = "/home/steve/Desktop/V_DRIVE/STEVE/converted_from_dps.database";
+		std::string dbpath = "/home/steve/Desktop/V_DRIVE/STEVE/converted_from_dps.database";
 #else
-		std::string spath = "V:/STEVE/converted_from_dps.database";
+		std::string dbpath = "V:/STEVE/converted_from_dps.database";
 #endif
 
-		int64_t num_dps_records = import_dps(spath);
+#ifdef _WIN32
+			std::string dps_lib_path = "V:\\STEVE\\MyDocs\\hugelib\\NewLib.dat";
+#else
+			std::string dps_lib_path = "../../Desktop/V_DRIVE/STEVE/MyDocs/hugelib/NewLib.dat";
+#endif
+
+		
+		myprogress myprog;
+		int64_t num_dps_records =
+			playout::db::dps_import::import_dps(dbpath, dps_lib_path, &myprog);
+
+
 		cout << "dps imported found: " << num_dps_records << " records." << endl;
 		{
-			sjk::timer t;
+			
 			bool existed = false;
-			std::unique_ptr<mydb_t> pdb = db_make(f, existed, false, spath);
-			cout << "Took " << t.stop() << " ms to create a playout database." << endl;
+
+			std::unique_ptr<mydb_t> pdb = playout::db::db_open(dbpath, f, existed, false);
 			cout << "Number of records: " << pdb->record_count(false) << endl;
-			cout << "File size is: " << (double)sjk::file::size(spath) / 1024.0 / 1024.0 << " MBytes." << endl;
+			cout << "Database file size is: " << (double)sjk::file::size(dbpath) / 1024.0 / 1024.0 << " MBytes." << endl;
 			cout << endl;
 			assert(num_dps_records == pdb->record_count(false));
-			pdb->populate();
+			pdb->populate(&myprog);
 			cout << "Number of records in the database : " << pdb->record_count() << endl;
 			auto pcol = pdb->caches().vec().at(0);
 			cout << "first column's name is: " << pcol->name() << endl;

@@ -54,7 +54,7 @@ namespace sjk {
 
 		int done(std::string msg = "All done. Hit return to exit.", bool wait = true) {
 			using std::endl; using std::cout; using std::cin; using std::getline;
-			cout << "Assertions passed: " << assert_ctr::ctr << endl;
+			cout << "Assertions passed: " << assert_ctr::ctr() << endl;
 			auto ms = m_tmr.stop();
 			cout << "Execution time: " << ms << " ms (" << ((float)ms /1000.0f) << " secs.)" <<  endl;
 			cout << msg << endl;
@@ -87,14 +87,16 @@ namespace sjk {
 		}
 
 		#define PBSTR "||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||"
+		#define PBST2 "============================================================"	
 		#define PBWIDTH 60
 
-		static void print_progress (double percentage)
+		static void print_progress (double ratio)
 		{
-			int val = (int) (percentage * 100);
-			int lpad = (int) (percentage * PBWIDTH);
+			if (ratio > 1.0) ratio = 1.0;
+			int val = (int) (ratio * 100);
+			int lpad = (int) (ratio * PBWIDTH);
 			int rpad = PBWIDTH - lpad;
-			printf ("\r%3d%% [%.*s%*s]", val, lpad, PBSTR, rpad, "");
+			printf ("\r%3d%% [%.*s%*s]", val, lpad, PBST2, rpad, "");
 			fflush (stdout);
 		}
 

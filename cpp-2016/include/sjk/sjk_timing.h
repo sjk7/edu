@@ -47,6 +47,8 @@ namespace sjk
 		timer_t m_start; timer_t m_end;
 	};
 
+	typedef timer stopwatch;
+
 } // namespace sjk
 
 
