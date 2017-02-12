@@ -75,7 +75,7 @@ namespace sjk
 
 		
 
-		template <typename IMPL = typename sjk::progress_st::impl>
+		template <typename IMPL = sjk::progress::progress_st>
 		struct progress_t : public IMPL
 		{
 

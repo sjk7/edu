@@ -2,8 +2,6 @@
 #define PL_TYPES_H
 
 
-#include "../sjk/sjk_db_cache.h"
-#include "../sjk/sjk_strings.h"
 #include <cstdint>
 #include <cstring>
 #include <type_traits>
@@ -12,6 +10,10 @@
 #include <initializer_list>
 #include <cassert>
 #include <array>
+
+#include "../sjk/sjk_db_cache.h"
+#include "../sjk/sjk_strings.h"
+#include "../sjk/sorted_vector.h"
 
 namespace playout
 {
@@ -67,8 +69,7 @@ namespace playout
 			{
 				const auto& a = r.m_data.strvals.categories[icat];
 				if (strlen(a.data())){
-					cats.emplace_back(std::string(a.data()));
-					// cats.insert(std::string(a.data()));
+					cats.emplace_back(a.data());
 				}else{
 					break;
 				}
@@ -131,7 +132,7 @@ namespace playout
 		friend std::ostream& print_tone(std::ostream& os, const head_tail& ht) {
 			print_tone(os, ht, true);
 			print_tone(os, ht, false);
-			os << "\n";
+			// os << "\n";
 			return os;
 		}
 
@@ -209,7 +210,7 @@ namespace playout
 		}
 	};
 
-	typedef std::vector<tones::value_type> tonevec_t;
+	typedef sorted_vector<tones::value_type> tonevec_t;
 
 	template <typename T>
 	static inline std::ostream& operator << (std::ostream& os, const tonevec_t& v)
@@ -252,9 +253,10 @@ namespace playout
 	{
 		//CMP c;
 		const size_t cnt = std::min(v1.size(), v2.size());
-		ASSERT(v1.size() == v2.size()); // need to handle the case where the vectors may not
+		// ASSERT(v1.size() == v2.size()); // need to handle the case where the vectors may not
 		// be of equal size, but we still need to know if *one* value in the larger-sized vector
-		// is greater (or less) than any value in the smaller one.
+		// is greater (or less) than any value in the smaller one. I think the most sensible way to do this
+		// is to RULE that multi-tones are always saved in sorted order, and then its easy:
 		size_t i = 0;
 		for (i = 0; i < cnt; i++)
 		{

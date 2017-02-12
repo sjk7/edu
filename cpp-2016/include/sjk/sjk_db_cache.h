@@ -22,8 +22,8 @@ namespace sjk {
             virtual void reserve(const int64_t sz) = 0;
             virtual const std::string& name() const = 0;
             virtual sjk::var value(const sjk::db::row_t& rw) const = 0;
-            // Caveat : will throw if the cache type is *not* of type string
-            virtual const std::string& to_string(const row_t& rw) const = 0;
+            
+            virtual const std::string to_string(const row_t& rw) const = 0;
             // Caveat : will throw if the cache type is *not* of type vector of string
             // virtual const std::vector<std::string>& to_string_vec(const row_t& rw) const = 0;
             virtual sjk::db::index_t index_at(const row_t& row) = 0;
@@ -32,7 +32,8 @@ namespace sjk {
             virtual bool mark_erased(const row_t& idx) = 0;
             // used for an optimization where we won't need to sort
             // if we are already sorted by index ascending when records are deleted.
-            virtual bool is_sorted_by_index() = 0;
+            virtual bool is_sorted_by_index() const = 0;
+			virtual uint32_t flags() const = 0;
             virtual ~icache() {}
         };
 
@@ -44,17 +45,30 @@ namespace sjk {
 
 
         namespace detail{
+
+			template < class T >
+			inline std::ostream& operator << (std::ostream& os, const std::vector<T>& v)
+			{
+				os << "[";
+				for (typename std::vector<T>::const_iterator ii = v.begin(); ii != v.end(); ++ii)
+				{
+					os << " " << *ii;
+				}
+				os << " ]";
+				return os;
+			}
+
             template <typename T>
             struct accessor
             {
                 accessor(const T& t) : m_t(t) {}
                 const T& m_t;
-                const std::string& value() const {
+                const std::string value() const {
                     static std::string s; (void)s;
-                    assert ("Only values that are actually strings should have to_string called on them");
-                    SJK_EXCEPTION("Only values that are actually strings should have to_string called on them");
+					// If I fail, you need to provide ostream& << for whatever is in here
+					std::stringstream ss; ss << m_t;
+					return std::string(ss.str());
 
-                    return s; //
                 }
             };
 
@@ -93,7 +107,7 @@ namespace sjk {
             template <typename T,
                       typename U = typename T::size_type,
                       typename Z = typename T::value_type>
-            static inline var cache_get_value(const T& val) {
+            static inline var cache_get_value(const T& val)  {
                 return sjk::var(val);
             }
             // Get a "value" when the cache contains one value per index entry.
@@ -135,10 +149,32 @@ namespace sjk {
                 std::stable_sort(v.begin(), v.end(), [&](const pr_t& p1, const pr_t& p2) {
                     return c(p1.first, p2.first);
                 });
+
+
             }
 
+			/*/
+			template <typename V,
+						typename = typename std::enable_if<
+					sjk::collections::is_vector<X>::value>::type>
+				
+				static inline void sort_by_pair_first(V& vec, case_insens_compare cmp) {
+				auto& v = vec;
+				
+				using pr_t = typename V::value_type;
+				std::stable_sort(v.begin(), v.end(), [&](const pr_t& p1, const pr_t& p2) {
+					return cmp(p1.first, p2.first);
+				});
+
+			}
+			/*/
+
+
             public:
-            cache_store(const std::string& name) : m_sname(name), m_bsorted_by_index_ascending(true){}
+            cache_store(const std::string& name, uint32_t flags = 0) :
+				m_sname(name), 
+				m_bsorted_by_index_ascending(true),
+				m_flags (flags){}
             virtual ~cache_store() {}
             cache_store(const cache_store& c) = delete;
             cache_store& operator=(const cache_store& c) = delete;
@@ -146,21 +182,45 @@ namespace sjk {
             vec_t& values() { return *this; }
             const vec_t& values_const() const { return *this; }
 
+
+			
             virtual void sort(sortorder order = sortorder::asc,
-                              sortkind kind = sortkind::value) override {
+                              sortkind kind = sortkind::value, sortable::sortflags flags = sortable::sortflags()) override {
+
                 using ft = typename V::first_type;
                 using so_t = sjk::sortable::sortorder;
                 m_bsorted_by_index_ascending = false;
+				
 
                 if (kind == sortkind::index) {
                     sort_by_index(*this, order);
                     m_bsorted_by_index_ascending = (order == sjk::sortable::sortorder::asc);
                 } else {
                     if (order == so_t::asc) {
-                        sort_by_pair_first<ft, std::less<ft>, VT>(*this);
+						if (flags & sortable::sortflags::case_insens) {
+							sort_by_pair_first<ft, ci_cmp_less<ft>, VT>(*this);
+						}
+						else {
+							if (flags & sortable::sortflags::case_sens) {
+								sort_by_pair_first<ft, cs_cmp_less<ft>, VT>(*this);
+							}
+							else {
+								sort_by_pair_first<ft, cs_cmp_less<ft>, VT>(*this);
+							}
+						}
 
                     } else {
-                        sort_by_pair_first<ft, std::greater<ft>, VT>(*this);
+						if (flags & sortable::sortflags::case_insens) {
+							sort_by_pair_first<ft, ci_cmp_greater<ft>,  VT>(*this);
+						}
+						else {
+							if (flags & sortable::sortflags::case_sens) {
+								sort_by_pair_first<ft, ci_cmp_greater<ft>, VT>(*this);
+							}
+							else {
+								sort_by_pair_first<ft, std::greater<ft>,   VT>(*this);
+							}
+						}
                     }
                 }
             }
@@ -183,26 +243,11 @@ namespace sjk {
                 return ret;
             }
 
-
-
-            /*/
-                        template <>
-                        struct accessor<std::vector<std::string>>
-                        {
-                                using M = std::vector<std::string>;
-                                accessor(const M& t) : m_t(t) {}
-                                const M& m_t;
-                                std::string value() const {
-                                        return std::string();
-                                }
-                        };
-                        /*/
-            virtual const std::string& to_string(const row_t& rw) const override {
+            virtual const std::string to_string(const row_t& rw) const override {
                 const auto i = rw.value();
                 auto& val = VT::operator[](i).first;
                 auto a = detail::accessor<typename VT::value_type::first_type>(val);
-                const std::string& retval = a.value();
-                return retval;
+				return a.value();
             }
 
             virtual index_t index_at(const row_t& row) override {
@@ -224,13 +269,12 @@ namespace sjk {
                 return true;
             }
 
-            virtual bool is_sorted_by_index() override
-            {
-                return m_bsorted_by_index_ascending;
-            }
+            virtual bool is_sorted_by_index()  const override { return m_bsorted_by_index_ascending; }
+			virtual uint32_t flags() const override { return m_flags; }
 
             protected:
             std::string m_sname;
+			uint32_t m_flags{ 0 };
             // used for an optimization where we won't need to sort
             // if we are already sorted by index ascending when records are deleted.
             bool m_bsorted_by_index_ascending;

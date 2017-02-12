@@ -20,7 +20,7 @@ using dbptr_t = std::unique_ptr<mydb_t>;
 
 
 
-void db_append_records(mydb_t& db, int64_t howmany = 10000)
+void db_append_records(mydb_t& db, int64_t howmany = 10)
 {
     using rec_t = playout::db::rec_t;
     using playout::strings;
@@ -32,10 +32,9 @@ void db_append_records(mydb_t& db, int64_t howmany = 10000)
     std::string a("Artist field ");
     std::string tit("Title field ");
 
+	// auto oldcount = db.record_count();
 	auto c = db.record_count();
-    if (c){
-        c -=1; // don't go negative when the db is empty!!
-    }
+	howmany += c;
 
     std::string proper_long = " I don't want this string to be sso'd, thanks, and now its waaay too long to fit, with some more junk here.";
 
@@ -144,7 +143,8 @@ void db_append_records(mydb_t& db, int64_t howmany = 10000)
     }
 
     if (howmany) {
-        ASSERT(c == db.record_count());
+		auto cnow = db.record_count();
+		ASSERT(cnow == howmany); (void)cnow;
         auto ms = t.stop();
         cout << "Adding " << howmany << " records took : " << ms << " ms. "
              << "(" << ms / 1000 << " secs.)" << endl << endl;
@@ -152,39 +152,88 @@ void db_append_records(mydb_t& db, int64_t howmany = 10000)
 
 }
 
+using playout::db::icache;
+using sjk::db::index_t;
+void first_last(icache* p, std::string& first, std::string& last) {
+
+
+	first = p->to_string(index_t(0));
+	cout << "\nFirst record: " << first << "\n";
+	last = std::string( p->to_string(index_t(p->size() - 1)) );
+	cout << "Last record:  " << last << "\n\n";
+
+}
 void print_info(mydb_t& db){
     cout << "************* db info ***********";
     cout << "Records: " << db.record_count() << endl;
-    cout << "Columns: " << "\n" ;
+    
     using playout::db::icache;
     using sjk::sortable;
     using sjk::db::index_t;
     sjk::timer tmr;
+	cout << "Columns info (" << db.caches().vec().size() << ") columns ..." << "\n";
+	for (icache* p : db.caches().vec())
+	{
+		cout << p->name() << ", ";
+	}
+	cout << endl;
+	const auto& vec = db.caches().vec();
 
-    for (icache* p : db.caches().vec()){
+    for (icache* p : vec){
         if (p->size() == 0){
             cout << p->name() << " is empty." << endl;
             continue;
         }
         cout << p->name() << ": size=" << p->size() <<
-                " sorted by ascending index=" << p->is_sorted_by_index() << "\n";
-        cout << "Please wait, sorting ..." <<"\n";
-        cout << "First record: " << p->value(index_t(0)) << "\n";
+                " sorted by ascending index says (expecting true)" << p->is_sorted_by_index() << "\n\n";
+		ASSERT(p->is_sorted_by_index());
+        
+		std::string first, last;
+		first_last(p, first, last);
 
-        cout << "Sorting descending ..." << endl;
+		tmr.start();
+		cout << "Sorting " << p->name() << " by descending INDEX ..." << endl;
+		p->sort(sortable::sortorder::desc, sortable::sortkind::index);
+		tmr.stop();
+		cout << "Sorting " << p->name() << " by descending INDEX took: " << tmr.stop() << " ms." << endl;
+		std::string this_first, this_last;
+		first_last(p, this_first, this_last);
+		// All we've done is flipped the order. Here's the test for that:
+		ASSERT(this_last == first);
+		ASSERT(this_first == last);
+
+        cout << "Sorting " << p->name() << " by descending VALUE..." << endl;
         tmr.start();
-        p->sort(sortable::sortorder::desc, sortable::sortkind::value);
+        p->sort(sortable::sortorder::desc, sortable::sortkind::value, sortable::sortflags::case_insens);
+        cout << "Sorting the column '" << p->name() << "' took: " << tmr.stop() << " ms\n";
 
-        cout << "Sorting the column took: " << tmr.stop() << " ms\n";
-        cout << p->name() << ": size=" << p->size() <<
-                " sorted by ascending index=" << p->is_sorted_by_index() << "\n";
         ASSERT(!p->is_sorted_by_index());
-        cout << "First record: " << p->value(index_t(0)) << "\n\n";
-        cout << "Now sorting " << p->name() << " by index ascending\n";
+		first_last(p, first, last);
+
+		cout << "\n";
+		cout << "Now sorting " << p->name() << " by ASCENDING VALUE ..." << endl;
+		tmr.start();
+		p->sort(sortable::sortorder::asc, sortable::sortkind::value, sortable::sortflags::case_insens);
+		cout << "Sorting by asc value took: " << tmr.stop() << " ms." << endl;
+		first_last(p, this_first, this_last);
+		ASSERT(this_first == last);
+		ASSERT(this_last == first);
+		cout << "\n";
+
+		tmr.start();
+		cout << "Is the default sort any faster than the specialized string ones? ..." << endl;
+		p->sort();
+		cout << "Default ascending sort took: " << tmr.stop() << " ms." << endl;
+		first_last(p, first, last);
+
+        cout << "Now sorting " << p->name() << " by INDEX ascending\n";
         tmr.start();
         p->sort(sortable::sortorder::asc, sortable::sortkind::index);
         cout << "Took : "<< tmr.stop() << " ms.\n";
         ASSERT(p->is_sorted_by_index());
+		first_last(p, first, last);
+		cout << " --------------------------------------- \n";
+		cout << " --------------------------------------- \n\n";
     }
 
 }
@@ -202,55 +251,6 @@ void sort_tones_descending(mydb_t& db) {
 }
 
 
-
-
-/*/
-int main()
-{
-	// sjk::terminal::test_progress();
-	// sjk::terminal::test_progress2();
-
-    {
-		sjk::terminal term(false);
-        sjk::cfile f;
-        {
-            sjk::timer t;
-            bool existed = false;
-            std::unique_ptr<mydb_t> pdb = db_make(f, existed, false);
-            cout << "Took " << t.stop() << " ms to create a playout database." << endl;
-            size_t to_add = 2000;
-
-            if (existed) {
-                to_add = 0;
-            }
-            mem();
-
-            if (to_add) {
-                cout << "You'll need to wait, adding " << to_add << " records ..." << endl;
-                db_append_records(*pdb.get(), to_add);
-            }
-
-            cout << "File Size of " << pdb->file_size() / 1024 / 1024 << " MB." << endl;
-            cout << "Please wait, populating db ..." << endl;
-            pdb->populate();
-            mem();
-
-            cout << "File Size of " << pdb->file_size() / 1024 / 1024 << " MB." << endl;
-            cout << "db has " << pdb->record_count() << " unerased records." << endl;
-
-            print_info(*pdb);
-			sort_tones_descending(*pdb);
-        }
-        cout << "-----------------------------" << endl;
-
-
-    }
-    mem();
-    return 0;
-	
-
-}
-/*/
 
 struct myprogress : public sjk::progress::iprogress
 {
@@ -288,6 +288,7 @@ int main()
 
 #ifdef _WIN32
 			std::string dps_lib_path = "V:\\STEVE\\MyDocs\\hugelib\\NewLib.dat";
+			SetConsoleOutputCP(CP_UTF8);
 #else
 			std::string dps_lib_path = "../../Desktop/V_DRIVE/STEVE/MyDocs/hugelib/NewLib.dat";
 #endif
@@ -317,6 +318,9 @@ int main()
 			cout << pcol->value(sjk::db::row_t(0)) << endl;
 			cout << "Should be the same as...";
 			cout << pcol->to_string(sjk::db::row_t(0)) << endl;
+
+			db_append_records(*pdb);
+			print_info(*pdb);
 
 		} // db falls out of scope
 	} // term falls out of scope

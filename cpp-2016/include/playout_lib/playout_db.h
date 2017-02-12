@@ -25,22 +25,27 @@ namespace playout
 			typedef std::pair< std::vector<std::string>, idx_t > strvecpair_t;
 
 			typedef std::vector<icache_t*> cachevec_t;
+			// caches are simply "columns" with pre-loaded data, and always up-to-date with changes.
 			typedef sjk::collections::name_values<icache_t*> cache_coll_t;
 			using row_t = sjk::db::row_t;
 			enum class state { none, deleting };
 			state m_state;
 
-			mydb_t(sjk::io::device& d) : base(d), m_state(state::none), m_artists("artist"),
-				m_titles("title"), m_paths("paths"), m_dates_created("dates_created"),
-				m_intros("intros"), m_sectones("sectones"), m_cats("category")
+			mydb_t(sjk::io::device& d) : base(d), m_state(state::none), m_paths("path"), 
+				m_artists("artist"), m_titles("title"), m_albums("album"), 
+				m_intros("intros"), m_sectones("sectones"), m_cats("category"),
+				m_dates_modified("date_modified"), m_dates_created("date_created")
 			{
+				m_caches.push_back(&m_paths);
 				m_caches.push_back(&m_artists);
 				m_caches.push_back(&m_titles);
-				m_caches.push_back(&m_dates_created);
+				m_caches.push_back(&m_albums);
 				m_caches.push_back(&m_intros);
 				m_caches.push_back(&m_sectones);
 				m_caches.push_back(&m_cats);
-				m_caches.push_back(&m_paths);
+				m_caches.push_back(&m_dates_created);
+				m_caches.push_back(&m_dates_modified);
+				
 			}
 
 			mydb_t(const mydb_t& other) = delete;
@@ -96,9 +101,12 @@ namespace playout
 
 				clear();
 				reserve(rc);
+				auto& pathvec = m_paths.values();
 				auto& artvec = m_artists.values();
 				auto& titvec = m_titles.values();
+				auto& albvec = m_albums.values();
 				auto& datevec = m_dates_created.values();
+				auto& modvec = m_dates_modified.values();
 				auto& introvec = m_intros.values();
 				auto& secvec = m_sectones.values();
 				auto& catvec = m_cats.values();
@@ -123,16 +131,15 @@ namespace playout
 						p->progress(ctr);
 					}
 					if (!(r.info.flags & sjk::db::flags_options::ERASED)) {
+
+						pathvec.emplace_back(strpair_t(r.m_data.strvals.path, idx));
 						artvec.emplace_back(strpair_t(r.m_data.strvals.artist, idx));
 						titvec.emplace_back(strpair_t(r.m_data.strvals.title, idx));
+						albvec.emplace_back(strpair_t(r.m_data.strvals.album, idx));
 						datevec.emplace_back(timepair_t(r.date_created(), idx));
+						modvec.emplace_back(timepair_t(r.date_modified(), idx));
+						strings::pop_cats_from_record(r, idx, catvec, tempcats);
 
-						//if (ctr < 100) {
-							strings::pop_cats_from_record(r, idx, catvec, tempcats);
-						//}
-						//else {
-						//	catvec.emplace_back(std::make_pair(empty_cat_vec, idx));
-						//}
 
 						sjk::span<tones::value_type> spintros(&r.m_data.tonevals.intros[0], tones::MAX_INTROS);
 						pop_multicache(v, spintros);
@@ -151,13 +158,16 @@ namespace playout
 
 				const auto recs = record_count(); (void)recs;
 				ASSERT(ctr == recs);
-				ASSERT(artvec.size() == static_cast<size_t>(ctr));
-				ASSERT(titvec.size() == static_cast<size_t>(ctr));
-				ASSERT(datevec.size() == static_cast<size_t>(ctr));
 				if (p) {
 					p->end();
 				}
-				// std::cout << "population took: " << t.stop() << " ms." << std::endl;
+				
+				for (const auto pcol : caches().vec())
+				{
+					if (!pcol->flags()) {
+						ASSERT(pcol->size() == recs); // checking you remembered to populate all the caches
+					}
+				}
 			}
 
 			sjk::var value(const std::string& cacheid, const row_t rw)
@@ -202,14 +212,19 @@ namespace playout
 			};
 
 		protected:
+			
 			cache_coll_t m_caches;
+			sjk::db::cache_t<std::string> m_paths;
 			sjk::db::cache_t<std::string> m_artists;
 			sjk::db::cache_t<std::string> m_titles;
-			sjk::db::cache_t<std::string> m_paths;
-			sjk::db::cache_t<sjk::timer_t> m_dates_created;
+			sjk::db::cache_t<std::string> m_albums;
 			sjk::db::multicache_t<tones::value_type> m_intros;
 			sjk::db::multicache_t<tones::value_type> m_sectones;
 			sjk::db::multicache_t<std::string> m_cats;
+			sjk::db::cache_t<sjk::timer_t> m_dates_modified;
+			sjk::db::cache_t<sjk::timer_t> m_dates_created;
+	
+			
 
 			// ---------- NB: All delete functions are protected because you
 			// ---------- need to use a record_eraser()

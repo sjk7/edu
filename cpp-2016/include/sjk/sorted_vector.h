@@ -18,6 +18,8 @@
 #if !defined(SORTED_VECTOR_H)
 #define SORTED_VECTOR_H
 
+#include "sjk_os.h"
+
 #include <vector>
 #include <algorithm>			// For lower_bound
 
@@ -93,14 +95,103 @@
 // you call SetSorted(false) where appropriate.
 //
 //-------------------------------------------------------------------//
-template<class T, class _A = std::allocator<T> >
+
+#if defined(_WIN32) || defined(_WIN64)
+#	ifndef strcasecmp
+#		define snprintf _snprintf
+#		define vsnprintf _vsnprintf
+#		define strcasecmp _stricmp
+#		define strncasecmp _strnicmp
+#	endif
+#endif
+
+#pragma warning (disable: 4996)
+
+template <typename T>
+struct ci_cmp_less {
+	using S = T;
+
+	bool operator () (const S& s1, const S& s2) const {
+		return s1 < s2;
+	}
+};
+
+template <>
+struct ci_cmp_less<std::string> {
+	using S = std::string;
+
+	bool operator () (const S& s1, const S& s2) const {
+
+		return strcmpi(s1.c_str(), s2.c_str()) < 0;
+	}
+};
+
+template <typename T>
+struct ci_cmp_greater {
+	using S = T;
+
+	bool operator () (const S& s1, const S& s2) const {
+		return s1 > s2;
+	}
+};
+
+template <>
+struct ci_cmp_greater<std::string> {
+	using S = std::string;
+
+	bool operator () (const S& s1, const S& s2) const {
+		bool b =  strcmpi(s1.c_str(), s2.c_str()) > 0;
+		return b;
+	}
+};
+
+template <typename T>
+struct cs_cmp_greater
+{
+	bool operator () (const T& s1, const T& s2) const {
+		return s1 > s2;
+	}
+};
+template <>
+struct cs_cmp_greater<std::string>
+{
+	using T = std::string;
+	bool operator () (const T& s1, const T& s2) const {
+		return s1 > s2;
+	}
+};
+
+template <typename T>
+struct cs_cmp_less
+{
+	bool operator () (const T& t1, const T& t2) const {
+		return t1 < t2;
+	}
+};
+
+template <>
+struct cs_cmp_less<std::string>
+{
+	using T = std::string;
+	bool operator () (const T& s1, const T& s2) const {
+		bool b = strcmp(s1.c_str(), s2.c_str()) < 0;
+		return b;
+	}
+};
+
+
+
+
+template<class T, class CMP = ci_cmp_less<T>, class _A = std::allocator<T> >
 class sorted_vector : public std::vector<T, _A>
 {
 	typedef std::vector<T> inherited;
+	
 
 public:
 	using allocator_type = typename inherited::allocator_type;
 	using value_type = typename inherited::value_type;
+	using CMP_T = CMP;
 
     sorted_vector(std::initializer_list<value_type> l,
                   allocator_type a = typename inherited::allocator_type()) :
@@ -121,6 +212,14 @@ public:
     }
     sorted_vector() :
         m_bSorted(false){}
+
+	
+	void clear() { inherited::clear(); m_bSorted = false; }
+	void emplace_back(T&& val)
+	{
+		m_bSorted = false;
+		inherited::emplace_back(std::forward<T>(val));
+	}
 
 	//-------------------------------------------------------------------//
 	// SetSorted()																			//
@@ -147,7 +246,9 @@ public:
 	{
 		if ( !m_bSorted )
 		{
-			std::sort( inherited::begin(), inherited::end() );
+			if (!empty()) {
+				std::sort(inherited::begin(), inherited::end(), CMP());
+			}
 			SetSorted();
 		}
 	}
@@ -321,20 +422,24 @@ public:
 	// instead of the non-functor versions.
 	// NOTE: UPDATE THIS when C++0x polymorphic function wrappers are available.
    template<class _Pr> inline
-	void sort( _Pr pr )
+	void sort( _Pr pr = CMP() )
 	{
 		if ( !m_bSorted )
 		{
-				  std::sort( inherited::begin(), inherited::end(), pr );
+			if (!empty()) {
+				std::sort(inherited::begin(), inherited::end(), pr);
+			}
 			SetSorted();
 		}
 	}
 	template<class _Pr> inline
-	 typename std::vector<T>::iterator lower_bound_it( const T& key, _Pr pr )
+	 typename std::vector<T>::iterator lower_bound_it( const T& key, _Pr pr = CMP() )
 	 {
 		 if ( !m_bSorted )
 		 {
-			 std::sort( inherited::begin(), inherited::end(), pr );
+			 if (!empty()) {
+				 std::sort(inherited::begin(), inherited::end(), pr);
+			 }
 			 SetSorted();
 		 }
 		 typename std::vector<T>::iterator it = std::lower_bound( inherited::begin(), inherited::end(), key, pr );
@@ -352,7 +457,7 @@ public:
 		return t;
 	}
 	 template<class _Pr> inline
-	 void push_sorted( const T& t, _Pr pr )
+	 void push_sorted( const T& t, _Pr pr = CMP() )
 	 {
 		 if ( !m_bSorted )
 		 {
