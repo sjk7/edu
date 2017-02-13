@@ -30,10 +30,23 @@ namespace sjk
 		struct d : public iface
 		{
 		private:
-                        virtual ~d(){}
+            virtual ~d(){}
 			//general case
+
+			
 			template<typename T>
 			static inline void stream(std::ostream& os, const T& t){
+				// return os << t;
+				return;
+			}
+
+			template<typename T>
+			static inline void stream(std::ostream& os, const std::string& t) {
+				os << t;
+			}
+
+			template<typename T>
+			static inline void stream(std::ostream& os, const char* t) {
 				os << t;
 			}
 
@@ -43,7 +56,7 @@ namespace sjk
 			{
 				sjk::stream_vector(os, v);
 			}
-
+			
 		public:
 			typedef D value_type;
 
@@ -73,7 +86,7 @@ namespace sjk
 		std::unique_ptr<iface> m_p;
 
 		public:
-                virtual ~var(){}
+       virtual ~var(){}
 		template <typename T>
 		var(const T& t) : m_p(new d<T>(t)){
 			// remove this assertion if you really have a use case for a pointer, but its prolly a mistake,
@@ -126,13 +139,14 @@ namespace sjk
 		}
 
 		template <typename T>
-		bool operator==(const T& other){
+		
+		bool operator==(const T& other) const  {
 			if (!m_p) return false;
 			auto& t1 = m_p->type_id();
 			auto& t2 = typeid(T);
 
 			if (t1 == t2){
-				T& r = cast<T>();
+				const T& r = cast<T>();
 				return r == other;
 			}else{
 				std::cerr <<
@@ -143,6 +157,10 @@ namespace sjk
 			}
 			return false;
 		}
+
+		template <typename T>
+		// FIXME: should be const.
+		bool operator != (const T& other) const { return !operator==(other); }
 
 		bool operator==(const var& other) = delete;
 
@@ -168,6 +186,24 @@ namespace sjk
 
 			T* p = static_cast<T*>(pv);
 			return *p;
+		}
+
+		template <typename T>
+		T* cast_ptr(T* = nullptr)
+		{
+			if (!m_p) {
+				SJK_EXCEPTION("cast(): variant object is null");
+			}
+			if (typeid(T) != m_p->type_id()) {
+				std::cerr << "cast(): variant type mismatch.\nRequested type: " <<
+					typeid(T).name() << "\nActual type is: " << m_p->type_id().name() << std::endl;
+				SJK_EXCEPTION("cast(): variant type mismatch.\nRequested type: ",
+					typeid(T).name(), "\nActual type is: ", m_p->type_id().name());
+			}
+			void* pv = m_p->pv();
+
+			T* p = static_cast<T*>(pv);
+			return p;
 		}
 
 		bool empty() const{	return m_p == nullptr;}

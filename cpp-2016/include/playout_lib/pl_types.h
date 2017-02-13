@@ -113,6 +113,8 @@ namespace playout
 		T m_head  {TONE_NOT_SET};
 		T m_tail  {TONE_NOT_SET};
 
+
+
 		// In Win, this was causing ambiguity for std::string operator <<. SFIANE'd, therefore
 		template <typename V, typename U = typename V::const_iterator,
 				  typename Z = typename V::value_type::SFIANE>
@@ -149,7 +151,15 @@ namespace playout
 			}
 			return os;
 		}
+
+		bool operator < (const head_tail& rhs) {
+			return false;
+		}
+
+
 	};
+
+	// inline operator < (const std::vector<head_tail>)
 
 
 	/*/
@@ -209,8 +219,7 @@ namespace playout
 			return os;
 		}
 	};
-
-	typedef sorted_vector<tones::value_type> tonevec_t;
+	typedef std::vector<tones::value_type> tonevec_t;
 
 	template <typename T>
 	static inline std::ostream& operator << (std::ostream& os, const tonevec_t& v)
@@ -249,22 +258,17 @@ namespace playout
 	///////////////////////////////// align pragma ends /////////////////////////////////////
 
 	template <typename CMP = tones::less >
+	// compare multiple tones of the same type (multiple intros, multiple sectones, etc)
+	
 	static inline bool compare_multi_tones(const tonevec_t& v1, const tonevec_t& v2)
 	{
-		//CMP c;
-		const size_t cnt = std::min(v1.size(), v2.size());
-		// ASSERT(v1.size() == v2.size()); // need to handle the case where the vectors may not
-		// be of equal size, but we still need to know if *one* value in the larger-sized vector
-		// is greater (or less) than any value in the smaller one. I think the most sensible way to do this
-		// is to RULE that multi-tones are always saved in sorted order, and then its easy:
-		size_t i = 0;
-		for (i = 0; i < cnt; i++)
-		{
-			auto& ht1 = v1[i]; auto& ht2 = v2[i];
-			// I think its enough to check where *any* head is (nominally) less (or greater) than any other head
-			return CMP()(ht1.m_head, ht2.m_head);
-		}
-		return false;
+		// This works provided we RULE that multi-tones are always saved in sorted order, and then its easy:
+		static const head_tail<TONE_TYPE> ht_default;
+		auto p1  = &ht_default;
+		auto p2  = &ht_default;
+		if (v1.size()) { p1 = v1.data() + v1.size() - 1; }
+		if (v2.size()) { p2 = v2.data() + v2.size() - 1; }
+		return CMP()(p1->m_head, p2->m_head);
 	}
 	// compare two vectors of multiple tones
 	static inline bool operator <(const tonevec_t& v1, const tonevec_t& v2)

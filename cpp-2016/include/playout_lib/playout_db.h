@@ -5,6 +5,46 @@
 #include "pl_types.h"
 #include "../dps/dps_lib.h"
 
+using idx_t = sjk::db::index_t;
+
+typedef std::pair< std::string, sjk::db::row_type > strpair_t;
+
+// the streaming operators need to be in global namespace,
+// else var() can't find them. Some types hoisted out, therefore.
+
+inline std::ostream& operator << (std::ostream& os, const strpair_t& p) {
+	os << p.first << '\t' << p.second << std::endl;
+	return os;
+}
+
+typedef std::pair< sjk::timer_t, idx_t > timepair_t;
+typedef std::pair< playout::tones::value_type, idx_t > tonepair_t;
+typedef std::pair< std::vector<std::string >, idx_t > strvecpair_t;
+typedef std::pair<playout::tones::type, idx_t> durpair_t;
+
+inline std::ostream& operator << (std::ostream& os,
+	const std::pair<std::vector<playout::head_tail<unsigned int>, std::allocator<playout::head_tail<unsigned int> > >, sjk::db::row_type>& p) {
+	// os << p.first << '\t' << p.second << std::endl;
+	return os;
+}
+
+
+inline std::ostream& operator << (std::ostream& os, const timepair_t& p) {
+	return os << p.first << '\t' << p.second << std::endl;
+}
+
+
+inline std::ostream& operator << (std::ostream& os, const strvecpair_t& p) {
+	return os << p.first << '\t' << p.second << std::endl;
+}
+
+
+
+inline std::ostream& operator << (std::ostream& os, const durpair_t& p) {
+	return os << p.first << '\t' << p.second << std::endl;
+}
+
+
 namespace playout
 {
 	namespace db
@@ -12,17 +52,12 @@ namespace playout
 		typedef sjk::db::record<rec> rec_t;
 		typedef sjk::db::icache icache;
 
+
 		struct mydb_t : public sjk::db::core<rec_t>
 		{
 
 			using base = sjk::db::core<rec_t>;
 			using icache_t = icache;
-			using idx_t = sjk::db::index_t;
-
-			typedef std::pair<std::string, idx_t > strpair_t;
-			typedef std::pair<sjk::timer_t, idx_t > timepair_t;
-			typedef std::pair<tones::value_type, idx_t > tonepair_t;
-			typedef std::pair< std::vector<std::string>, idx_t > strvecpair_t;
 
 			typedef std::vector<icache_t*> cachevec_t;
 			// caches are simply "columns" with pre-loaded data, and always up-to-date with changes.
@@ -31,9 +66,9 @@ namespace playout
 			enum class state { none, deleting };
 			state m_state;
 
-			mydb_t(sjk::io::device& d) : base(d), m_state(state::none), m_paths("path"), 
-				m_artists("artist"), m_titles("title"), m_albums("album"), 
-				m_intros("intros"), m_sectones("sectones"), m_cats("category"),
+			mydb_t(sjk::io::device& d) : base(d), m_state(state::none), m_paths("path"),
+				m_artists("artist"), m_titles("title"), m_albums("album"),
+				m_intros("intros"), m_sectones("sectones"), m_durations("durations"), m_cats("category"),
 				m_dates_modified("date_modified"), m_dates_created("date_created")
 			{
 				m_caches.push_back(&m_paths);
@@ -42,10 +77,11 @@ namespace playout
 				m_caches.push_back(&m_albums);
 				m_caches.push_back(&m_intros);
 				m_caches.push_back(&m_sectones);
+				m_caches.push_back(&m_durations);
 				m_caches.push_back(&m_cats);
 				m_caches.push_back(&m_dates_created);
 				m_caches.push_back(&m_dates_modified);
-				
+
 			}
 
 			mydb_t(const mydb_t& other) = delete;
@@ -77,8 +113,13 @@ namespace playout
 				v.clear();
 
 				for (size_t i = 0; i < tones::MAX_INTROS; i++) {
-					if (sp[i].m_head == TONE_NOT_SET) break;
+					// to ease sorting, tones must always have at least 1 value in the multi-values, even if its TONE_NOT_SET
+					if (sp[i].m_head == TONE_NOT_SET && i) break;
 					v.push_back(sp[i]);
+				}
+				ASSERT(v.size());
+				if (v.size() > 1) {
+					std::stable_sort(v.begin(), v.end());
 				}
 
 			}
@@ -109,7 +150,10 @@ namespace playout
 				auto& modvec = m_dates_modified.values();
 				auto& introvec = m_intros.values();
 				auto& secvec = m_sectones.values();
+				auto& durvec = m_durations.values();
 				auto& catvec = m_cats.values();
+
+				// m_caches.reserve(rc); <-- Optimization opportunity?
 
 				const auto cap = static_cast<int64_t>(catvec.capacity()); (void)cap;
 				ASSERT(cap >= rc); // because reserve() should have done this
@@ -133,6 +177,8 @@ namespace playout
 					if (!(r.info.flags & sjk::db::flags_options::ERASED)) {
 
 						pathvec.emplace_back(strpair_t(r.m_data.strvals.path, idx));
+
+						durvec.emplace_back(durpair_t{ r.m_data.tonevals.duration, idx });
 						artvec.emplace_back(strpair_t(r.m_data.strvals.artist, idx));
 						titvec.emplace_back(strpair_t(r.m_data.strvals.title, idx));
 						albvec.emplace_back(strpair_t(r.m_data.strvals.album, idx));
@@ -145,6 +191,7 @@ namespace playout
 						pop_multicache(v, spintros);
 						introvec.push_back(std::make_pair(v, idx));
 						sjk::span<tones::value_type> spsectones(&r.m_data.tonevals.sectones[0], tones::MAX_SECTONES);
+
 						pop_multicache(v, spsectones);
 						secvec.push_back(std::make_pair(v, idx));
 
@@ -161,7 +208,7 @@ namespace playout
 				if (p) {
 					p->end();
 				}
-				
+
 				for (const auto pcol : caches().vec())
 				{
 					if (!pcol->flags()) {
@@ -173,7 +220,7 @@ namespace playout
 			sjk::var value(const std::string& cacheid, const row_t rw)
 			{
 				const auto x = m_caches.from_key(cacheid);
-				return x->value(rw);
+				return std::move(x->value(rw));
 			}
 
 #ifdef _MSC_VER
@@ -212,7 +259,7 @@ namespace playout
 			};
 
 		protected:
-			
+
 			cache_coll_t m_caches;
 			sjk::db::cache_t<std::string> m_paths;
 			sjk::db::cache_t<std::string> m_artists;
@@ -220,11 +267,14 @@ namespace playout
 			sjk::db::cache_t<std::string> m_albums;
 			sjk::db::multicache_t<tones::value_type> m_intros;
 			sjk::db::multicache_t<tones::value_type> m_sectones;
+			// not tones::value_type here, but simply TONE_TYPE: 
+			// 1 value to tell us the ultimate duration of the cut.
+			sjk::db::cache_t<TONE_TYPE> m_durations;
 			sjk::db::multicache_t<std::string> m_cats;
 			sjk::db::cache_t<sjk::timer_t> m_dates_modified;
 			sjk::db::cache_t<sjk::timer_t> m_dates_created;
-	
-			
+
+
 
 			// ---------- NB: All delete functions are protected because you
 			// ---------- need to use a record_eraser()
@@ -474,8 +524,8 @@ namespace playout
 
 
 			// returns the number of (undeleted) records imported into dbpath
-			int64_t import_dps(const std::string& dbpath, const std::string& dps_newlib_path, 
-								sjk::progress::iprogress* progress = nullptr)
+			int64_t import_dps(const std::string& dbpath, const std::string& dps_newlib_path,
+				sjk::progress::iprogress* progress = nullptr)
 			{
 
 				sjk::cfile f;

@@ -127,10 +127,10 @@ namespace sjk
 			const map_t& map() const { return m_map; }
 
 			typename vec_t::size_type size() const { return m_vec.size(); }
-			typename IT begin() { return m_vec.begin(); }
-			typename IT end() { return m_vec.end(); }
-			typename CI cbegin() { return m_vec.cbegin(); }
-			typename CI cend() { return m_vec.cend(); }
+			IT begin() { return m_vec.begin(); }
+			IT end() { return m_vec.end(); }
+			CI cbegin() { return m_vec.cbegin(); }
+			CI cend() { return m_vec.cend(); }
 			bool empty() const { return m_vec.empty(); }
 			void clear() { m_vec.clear(); m_map.clear(); }
 
@@ -170,7 +170,7 @@ namespace sjk
 		}
 
 		// sort a VECTOR of pair by the first item in the pair, where V is a sorted_vector
-		template <typename V, typename CMP = V::CMP, typename U = V >
+		template <typename V, typename CMP = typename V::CMP, typename U = V >
 		static inline void sort_by_pair_first(V& v, CMP cmp = CMP(),
 			typename std::enable_if<sjk::collections::is_sorted_vector<U>::value>::type* = 0) 
 		{

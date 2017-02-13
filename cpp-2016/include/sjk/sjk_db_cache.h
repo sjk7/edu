@@ -21,11 +21,13 @@ namespace sjk {
             virtual void clear() = 0;
             virtual void reserve(const int64_t sz) = 0;
             virtual const std::string& name() const = 0;
+			// Use this to get a value from a db row
             virtual sjk::var value(const sjk::db::row_t& rw) const = 0;
+			// Use this to iterate values, if you must.
+			virtual sjk::var value_at_index(const size_t idx) const = 0;
             
             virtual const std::string to_string(const row_t& rw) const = 0;
-            // Caveat : will throw if the cache type is *not* of type vector of string
-            // virtual const std::vector<std::string>& to_string_vec(const row_t& rw) const = 0;
+			// get the (file) index at row position
             virtual sjk::db::index_t index_at(const row_t& row) = 0;
             virtual int64_t size() const = 0;
             virtual int64_t delete_erased() = 0;
@@ -90,8 +92,6 @@ namespace sjk {
             using A = typename VT::allocator_type;
             using V = typename VT::value_type;
 
-            // POP m_pop;
-
             static_assert(sjk::collections::is_vector<VT>::value,
                           "Cache store must be templated on a vector");
 
@@ -142,8 +142,7 @@ namespace sjk {
                       typename V,
                       typename = typename std::enable_if<
                           sjk::collections::is_vector<X>::value>::type>
-            static inline void sort_by_pair_first(V& vec) {
-                auto& v = vec;
+            static inline void sort_by_pair_first(V& v) {
                 CMP c;
                 using pr_t = typename V::value_type;
                 std::stable_sort(v.begin(), v.end(), [&](const pr_t& p1, const pr_t& p2) {
@@ -229,18 +228,20 @@ namespace sjk {
             virtual void clear() override {}
             virtual void reserve(const int64_t sz) override { VT::reserve(sz); }
             virtual const std::string& name() const override { return m_sname; }
-            // calling this by reference, eg:
-            // std::string& s = value(rw) IS AN ERROR,
-            // because you will get a reference to a TEMPORARY.
-            // So, don't do it. If you need more speed, try to_string() and friends
+
+			virtual sjk::var value_at_index(const size_t idx) const override
+			{
+				auto v = VT::at(idx);
+				return v;
+			}
+
             virtual var value(const row_t& rw) const override {
                 auto v = rw.value();
 #ifdef DB_CACHE_ACCESS_CHECK
                 assert(v < size());
 #endif
                 const auto& val = VT::operator[](v);
-                sjk::var ret(val.first);
-                return ret;
+				return std::move(val.first);
             }
 
             virtual const std::string to_string(const row_t& rw) const override {
@@ -274,33 +275,36 @@ namespace sjk {
 
             protected:
             std::string m_sname;
-			uint32_t m_flags{ 0 };
+			
             // used for an optimization where we won't need to sort
             // if we are already sorted by index ascending when records are deleted.
             bool m_bsorted_by_index_ascending;
+			uint32_t m_flags{ 0 };
         };
 
         template <typename T>
         using pr_ty = std::pair<T, index_t>;
+
         template <typename T>
-        using vec_ty = std::vector<pr_ty<T>>;
+        using vec_ty = std::vector< pr_ty<T> >;
+
         template <typename T>
         using pr_ty_multi = std::pair<std::vector<T>, index_t>;
 
         struct pop_null {};
 
         /*!
- * A cache where each cache item has a single entry.
- * Where T is the type of data, and P is the user-supplied populator struct for
- * populating the cache
- */
+		* A cache where each cache item has a single entry.
+		* A cache item consists of a pair of values: the first pair value is the value we want to store,
+			and the second is the database index for this item.
+		*/
         template <typename T>
-        using cache_t = cache_store<vec_ty<T>>;
+        using cache_t = cache_store< vec_ty<T> >;
 
         /*!
  * A cache where each cache item can have multiple entries.
- * Where T is the type of data, and P is the user-supplied populator struct for
- * populating the cache
+ * Where T is the type of data we want to store, and there are many of them:
+ so we have a pair of < vector <values> , index >
  */
         template <typename T>
         using multicache_t = cache_store<std::vector<pr_ty_multi<T>>>;

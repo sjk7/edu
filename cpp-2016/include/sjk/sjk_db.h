@@ -125,6 +125,7 @@ namespace sjk {
             core(const core& other) = delete;
             core& operator=(const core& other) = delete;
 
+			// returns the lowest possible record index. and static
             static index_t record_index_first() { return index_t::zero(); }
 
             int64_t record_count(bool include_erased = false) const {
@@ -258,7 +259,7 @@ namespace sjk {
             //virtual int on_read_record(const R& r) = 0;
 
             std::streamoff file_size() const { return m_f.size_bytes(); }
-
+			// returns current file position.
             int64_t pos() const { return m_f.position(); }
 
             protected:

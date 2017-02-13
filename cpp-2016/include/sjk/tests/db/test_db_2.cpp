@@ -26,6 +26,7 @@ void db_append_records(mydb_t& db, int64_t howmany = 10)
     using playout::strings;
     using playout::tones;
 
+	return;
     sjk::timer t;
     db.seek(0, std::ios_base::end);
     rec_t r;
@@ -163,6 +164,49 @@ void first_last(icache* p, std::string& first, std::string& last) {
 	cout << "Last record:  " << last << "\n\n";
 
 }
+
+void sort_tones_descending(mydb_t& db) {
+	auto p = db.caches().map().at("sectones");
+	using sjk::db::index_t;
+	ASSERT(p);
+	using sjk::sortable;
+	p->sort(sortable::sortorder::desc, sortable::sortkind::value);
+	cout << "First record: " << p->value(index_t(0)) << "\n\n";
+	index_t idx = p->index_at(index_t(0));
+	cout << "index with highest (sec tone) value is : " << idx << endl;
+	// get the corresponding artist for this entry:
+	auto ptr = db.caches().map().at("artist"); (void)ptr;
+	auto vala = db.value("artist", idx);
+	auto valt = db.value("title", idx);
+	cout << "Highest sec tone value belongs to Artist: " << vala << " and title: " << valt << endl;
+	cout << "Finding longest (actually set) sectone ... " << endl;
+
+	for (int i = 0; i < p->size(); i++) {
+		auto v = p->value(index_t(i));
+		typedef std::vector<playout::head_tail<uint32_t>> v_t;
+		v_t* pc = v.cast_ptr<v_t>();
+		auto& ht = pc->at(pc->size() - 1);
+		auto x = ht.m_head;
+		if (x != playout::tones::NOT_SET) {
+			auto idx = p->index_at(index_t(i));
+			auto art = db.value("artist", idx);
+			auto tit = db.value("title", idx);
+			auto pt = db.value("path", idx);
+			cout << "Longest (actually set) sectone is for: ";
+			cout << art;
+			cout << " - ";
+			cout << tit;
+			cout << "\n";
+			cout << pt;
+			cout << endl;
+			break;
+		}
+	}
+	cout << "hello"	;
+}
+
+
+
 void print_info(mydb_t& db){
     cout << "************* db info ***********";
     cout << "Records: " << db.record_count() << endl;
@@ -178,6 +222,8 @@ void print_info(mydb_t& db){
 	}
 	cout << endl;
 	const auto& vec = db.caches().vec();
+
+	sort_tones_descending(db);
 
     for (icache* p : vec){
         if (p->size() == 0){
@@ -236,19 +282,11 @@ void print_info(mydb_t& db){
 		cout << " --------------------------------------- \n\n";
     }
 
+	
+
 }
 
-void sort_tones_descending(mydb_t& db) {
-	auto p = db.caches().map().at("sectones");
-	using sjk::db::index_t;
-	ASSERT(p);
-	using sjk::sortable;
-	p->sort(sortable::sortorder::desc, sortable::sortkind::value);
-	cout << "First record: " << p->value(index_t(0)) << "\n\n";
-	index_t idx = p->index_at(index_t(0));
-	cout << "index with highest value is : " << idx << endl;
-	ASSERT(idx == 1000);
-}
+
 
 
 

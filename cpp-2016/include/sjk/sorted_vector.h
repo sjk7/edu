@@ -122,7 +122,7 @@ struct ci_cmp_less<std::string> {
 
 	bool operator () (const S& s1, const S& s2) const {
 
-		return strcmpi(s1.c_str(), s2.c_str()) < 0;
+		return strcasecmp(s1.c_str(), s2.c_str()) < 0;
 	}
 };
 
@@ -140,7 +140,7 @@ struct ci_cmp_greater<std::string> {
 	using S = std::string;
 
 	bool operator () (const S& s1, const S& s2) const {
-		bool b =  strcmpi(s1.c_str(), s2.c_str()) > 0;
+		bool b = strcasecmp(s1.c_str(), s2.c_str()) > 0;
 		return b;
 	}
 };
@@ -246,7 +246,7 @@ public:
 	{
 		if ( !m_bSorted )
 		{
-			if (!empty()) {
+			if (!inherited::empty()) {
 				std::sort(inherited::begin(), inherited::end(), CMP());
 			}
 			SetSorted();
