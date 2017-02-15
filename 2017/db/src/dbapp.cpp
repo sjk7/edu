@@ -1,6 +1,12 @@
 // dbapp.cpp
 #include "../../db/include/db-core.h"
 #include <string>
+#include <utility>
+#include "../../../cpp/my/include/my_timing.h"
+#include <array>
+
+using std::cout; using std::endl;
+
 
 #pragma pack(1)
 struct mydata { char artist[100]; char title[100]; char album[100]; int64_t some_int; };
@@ -13,7 +19,6 @@ using core_t = sjk::dbcore::core<entry_t, mycallback_t>;
 struct mycallback_t
 {
 
-
 	inline int pop_data(entry_t& entry, sjk::dbcore::columnindex_t idx)
 	{
 		return -77;
@@ -24,28 +29,363 @@ struct mycallback_t
 		cout << "population complete, with " << num_entries << " entries." << endl;
 		if (num_entries == 0) {
 			auto& cols = db.columns();
-			
+
 		}
 		return 0;
 	}
 };
 
+template <typename T>
+size_t max_length_integral(const T&, int precision = 1)
+{
+
+}
+
+// a string of a fixed with, optionally
+// padded to the fixed length with nulls if you need it
+class fixed_length_string
+{
+public:
+	fixed_length_string(const std::string& s, size_t len) :
+		m_len(len)
+	{
+		assign(s, len);
+	}
+	fixed_length_string() : m_len(0) {}
+	size_t size_max() const { return m_len; }
+	size_t size_contents() const { return value().length(); }
+	void reserve(const size_t sz) { m_s.reserve(sz); }
+	const std::string& value_fixed_len() const {
+		return m_s;
+	}
+	const std::string& value() const { 
+		auto f = m_s.find('\0');
+		if (f != std::string::npos) {
+			return m_s.substr(0, f);
+		}
+		else {
+			return m_s;
+		}
+	}
+
+	void assign(const std::string& s, size_t len)
+	{
+		m_len = len;
+		auto l = s.length();
+		if (l >= m_len) {
+			m_s = s.substr(0, m_len);
+		}
+		else {
+			m_s = s;
+			m_s.resize(m_len); // pad with nulls
+		}
+	}
+
+protected:
+	size_t m_len;
+	std::string m_s;
+
+};
+
+struct column
+{
+	// how the internal data is interpreted for sorts, etc
+	enum TYPE { NONE, INT64, UINT64, INT32, UINT32, INT16, UINT16, INT8, UINT8, STRING };
+
+	template <typename T>
+	struct type_deducer { type_deducer() :type(NONE) { assert("type_deducer: unknown or disallowed type." == 0); }TYPE type; };
+	template <> 	struct type_deducer<int64_t> { type_deducer() : type(INT64) {} TYPE type; };
+	template <> 	struct type_deducer<uint64_t> { type_deducer() : type(UINT64) {} TYPE type; };
+	template <> 	struct type_deducer<int32_t> { type_deducer() : type(INT32) {} TYPE type; };
+	template <> 	struct type_deducer<uint32_t> { type_deducer() : type(UINT32) {} TYPE type; };
+	template <> 	struct type_deducer<int16_t> { type_deducer() : type(INT16) {} TYPE type; };
+	template <> 	struct type_deducer<uint16_t> { type_deducer() : type(UINT16) {} TYPE type; };
+	template <> 	struct type_deducer<uint8_t> { type_deducer() : type(UINT8) {} TYPE type; };
+	template <> 	struct type_deducer<int8_t> { type_deducer() : type(INT8) {} TYPE type; };
+	template <> 	struct type_deducer<char> { type_deducer() : type(STRING) {} TYPE type; };
+	template <> 	struct type_deducer<const char> { type_deducer() : type(STRING) {} TYPE type; };
+	struct collation
+	{
+		collation() : m_ty(TYPE::NONE) {}
+		collation(const collation& other) : m_ty(other.m_ty), m_sz(other.m_sz) {}
+		template <typename T>
+		void create(const T& dummy, size_t string_size = 0) {
+			type_deducer<T> d;
+			m_ty = d.type;
+			switch (m_ty) {
+			case NONE: assert("NONE is not a valid collation type" == 0); break;
+			case STRING: {
+				if (!string_size) {
+					assert("for a string type, you must specify its length" == 0);
+				}
+				m_sz = string_size;
+				break;
+			}
+			default: m_sz = sz<T>();
+
+			};
+		}
+
+		TYPE type() const { return m_ty; }
+		size_t size() const { return m_sz; }
+	private:
+		TYPE m_ty{ TYPE::NONE };
+		size_t m_sz{ 0 };
+		template <typename T>
+		static constexpr size_t sz() {
+			static_assert(std::is_integral<T>::value, "collation types must be integral");
+			static int digits = 0;
+			if (digits) return digits;
+			T number = std::numeric_limits<T>::max();
+			bool is_signed = std::numeric_limits<T>::is_signed;
+
+			if (is_signed) digits = 1;
+			if (number < 0) digits = 1;
+			while (number) {
+				number /= 10;
+				digits++;
+			}
+			return digits;
+		}
+	};
+
+	template <typename T>
+	column(const T& dummy, const std::string& name, size_t string_size = 0) :
+		m_name(name)
+	{
+		m_collation.create(dummy, string_size);
+	}
+
+	// creates an invalid column:
+	column(const std::string& name, size_t string_size = 0) : m_name(name), m_index(-1) {
+		m_collation.create(char(0), string_size);
+	}
+	column() {}
+	const std::string name() const { return m_name; }
+	int index() const { return m_index; }
+	size_t size() const { return m_collation.size(); }
+	void index_set(const int i) { m_index = i; }
+	TYPE type() const { return m_collation.type(); }
+	void reserve(const size_t sz) { m_values.reserve(sz); }
+	void value_add(const std::string& s) {
+		m_values.push_back(s);
+	}
+	const std::vector<std::string>& values() const { return m_values; }
+	void value_fixed_length(const int index, std::string& ret, fixed_length_string& flstmp) const {
+		const std::string& s = m_values.at(index);
+		flstmp.assign(s, size());
+		ret = flstmp.value_fixed_len();
+	}
+private:
+	std::string m_name;
+	int m_index{ -1 };
+
+
+	std::vector<std::string> m_values; // everything's a string in my world.
+	collation m_collation;
+
+};
+
+struct columns : public sjk::dbcore::namevalues<std::string, column>
+{
+	using base = sjk::dbcore::namevalues<std::string, column>;
+	auto add(column& c) {
+		assert(c.name().length() && "columns::add(): name of column must be set.");
+		c.index_set(static_cast<int16_t>(size()));
+		auto ret = base::add(std::make_pair(c.name(), c));
+
+		if (!ret.second) {
+			c.index_set(-1); // use this to check for failure, if you want.
+		}
+		return ret;
+	}
+	column& column_at(const std::string& name) {
+		auto& m = base::m_map;
+		auto f = m.find(name);
+		if (f != m.end()) {
+			return f->second;
+		}
+		assert("columns column(): column does not exist" == 0);
+		static column bad_col("bad", -1);
+		return bad_col;
+	}
+
+	column& column_at(const int index) {
+		auto& v = base::m_vec;
+		return v.at((size_t)index);
+		assert("columns column(): column does not exist" == 0);
+		static column bad_col("bad", -1);
+		return bad_col;
+	}
+
+	// the size, in chars, of each entry when it is prepared for writing to storage.
+	size_t entry_size() const
+	{
+		size_t ret = 0;
+		if (!m_entry_size) {
+			for (const auto& c : base::m_vec)
+			{
+				ret += c.size();
+			};
+			m_entry_size = ret;
+		}
+		return m_entry_size;
+	}
+	void build_row(std::string& ret, const int idx)
+	{
+
+		auto& flstmp = m_flstmp;
+		ret.clear();
+		ret.reserve(entry_size());
+		
+		for (const auto& c : base::m_vec) {
+			const auto& vals = c.values();
+			auto& v = vals[idx];
+			flstmp.assign(v, c.size());
+			ret += flstmp.value_fixed_len();
+		}
+			
+
+		ret += '\n';
+	}
+
+	auto begin() { return m_vec.begin(); }
+	auto end() { return m_vec.end(); }
+	// just to make building rows more efficient.
+	fixed_length_string m_flstmp;
+	mutable size_t m_entry_size{ 0 };
+};
+
+
+
 int main()
 {
 	using std::cout; using std::endl; using std::fstream; using std::cerr;
+	columns cols;
+	cols.add(column(uint64_t(), "uid"));
+	column& c = cols.column_at("uid");
+	auto t = c.type();
+	assert(t == column::TYPE::UINT64);
+	c = cols.column_at(0);
+	assert(c.type() == column::TYPE::UINT64);
+	cols.add(column(int64_t(), "date_modified"));
+	cols.add(column(int64_t(), "date_created"));
+	cols.add(column("path", 256));
+	c = cols.column_at(3);
+	assert(c.type() == column::TYPE::STRING);
+	assert(c.size() == 256);
+
+	int n = 100000;
+	for (auto& c : cols)
+	{
+		c.reserve(n);
+	}
+	char buf[8192];
+	std::vector<std::string> v;
+	v.reserve(n);
+	cout << endl;
+
+	my::stopwatch sw(true);
+	for (uint64_t i = 0; i < n; i++)
+	{
+		sprintf(buf, "%llu", i);
+		v.push_back(buf);
+
+	}
+	cout << "populating big vector took: " << sw.stop() << " ms." << endl;
+
+
+	sw.start();
+	for (const auto& s : v) {
+		for (auto& col : cols)
+		{
+			col.value_add(s);
+		}
+	}
+	cout << "populating " << cols.size() << " columns with " << v.size() << " items took: " << sw.stop() << " ms." << endl;
+	int i = 0;
+	cout << endl << "Some sample values as we iterate ..." << endl;
+	sw.start();
+	for (auto& col : cols)
+	{
+		for (const auto& v : col.values())
+		{
+			i++;
+			if (i % 10001 == 0) {
+				cout << v << ",";
+			}
+
+		};
+
+	};
+
+
+	cout << endl << endl;
+
+	cout << "iterating over all rows in all columns took: " << sw.stop() << " ms." << endl;
+	cout << endl;
+
+	fstream f("test.data", std::ios::binary | std::ios::out);
+	f.clear();
+
+	int rowcount = (int)cols.column_at(0).values().size();
+	i = 0;
+	sw.start();
+	std::string s;
+
+	
+	int row = 0;
+	std::ios_base::sync_with_stdio(false);
+	while (row < rowcount)
+	{
+		cols.build_row(s, row);
+		f.write(s.c_str(), s.size());
+		if (row % 10000 == 0) {
+			cout << "row " << row << "/" << rowcount << endl;
+		}
+		row++;
+
+	};
 	
 
+
+	cout << "Took " << sw.stop() << " ms to save ALL to file" << endl;
+	cout << endl;
+	/*/
+
 	entry_t myentry;
-	
-	fstream f; f.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+
+	fstream f; f.exceptions(std::ios::badbit | std::ios::failbit);
 	try {
-		f.open("foo.db", std::ios::out | std::ios::binary);
-		core_t db(f);
+		try {
+			f.open("foo.db", std::ios::in | std::ios::binary); // will throw if the file does not exist.
+			f.close(); // didn't throw, so does exist, so make sure we open in a away that preserves existing file:
+			f.open("foo.db", std::ios::out | std::ios::in | std::ios::binary);
+		}
+		catch (const std::exception& e)
+		{
+			cerr << e.what() << endl;
+			// threw, so the file does not exist yet, and this creates one
+			f.open("foo.db", std::ios::out |  std::ios::binary);
+			f.close();
+		}
+		// the file always exists here, so don't overwrite it
+		f.open("foo.db", std::ios::in | std::ios::out | std::ios::binary);
+
 	}
 	catch (const std::exception& e) {
+		if (f.eof()) {
+			// tried to open fstream on a zero-byte file.
+			f.clear();
+		}
 		cerr << e.what() << endl;
+		cerr << GetLastError() << endl;
 		assert(f.is_open());
 	}
+
+	core_t db(f);
+
+	/*/
 
 	return 0;
 }
