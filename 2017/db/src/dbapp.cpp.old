@@ -1,4 +1,6 @@
 // dbapp.cpp
+
+
 #include "../../db/include/db-core.h"
 #include <string>
 #include <utility>
@@ -132,7 +134,7 @@ struct column
 		TYPE m_ty{ TYPE::NONE };
 		size_t m_sz{ 0 };
 		template <typename T>
-		static constexpr size_t sz() {
+		static size_t sz() {
 			static_assert(std::is_integral<T>::value, "collation types must be integral");
 			static int digits = 0;
 			if (digits) return digits;
@@ -175,6 +177,26 @@ struct column
 		const std::string& s = m_values.at(index);
 		flstmp.assign(s, size());
 		ret = flstmp.value_fixed_len();
+	}
+
+	void sort() {
+		TYPE ty = type();
+		switch (ty)
+		{
+		case TYPE::STRING: {
+			std::stable_sort(m_values.begin(), m_values.end(),
+				[] (const std::string& lhs, const std::string& rhs) {
+				return strcmpi(lhs.c_str(), rhs.c_str()) > 0;
+			});
+			}
+			default: {
+				std::stable_sort(m_values.begin(), m_values.end(),
+					[](const std::string& lhs, const std::string& rhs) {
+					return std::atoll(lhs.c_str()) > std::atoll(rhs.c_str());
+				});
+
+			}
+		}
 	}
 private:
 	std::string m_name;
@@ -219,24 +241,30 @@ struct columns : public sjk::dbcore::namevalues<std::string, column>
 	}
 
 	// the size, in chars, of each entry when it is prepared for writing to storage.
-	size_t entry_size() const
+	// It's static because every row (entry) has the same size.
+	static inline size_t entry_size(const columns& c)
 	{
-		size_t ret = 0;
-		if (!m_entry_size) {
-			for (const auto& c : base::m_vec)
+		static size_t ret = 0;
+		auto& cols = c.vec();
+		static size_t numcols = cols.size();
+		if (cols.size() != numcols) {
+			ret = 0; // refresh if the number of columns changes.
+		}
+		if (!ret) {
+			
+			for (const auto& c : cols)
 			{
 				ret += c.size();
 			};
-			m_entry_size = ret;
 		}
-		return m_entry_size;
+		return ret;
 	}
 	void build_row(std::string& ret, const int idx)
 	{
 
 		auto& flstmp = m_flstmp;
 		ret.clear();
-		ret.reserve(entry_size());
+		ret.reserve(entry_size(*this));
 		
 		for (const auto& c : base::m_vec) {
 			const auto& vals = c.values();
@@ -244,8 +272,6 @@ struct columns : public sjk::dbcore::namevalues<std::string, column>
 			flstmp.assign(v, c.size());
 			ret += flstmp.value_fixed_len();
 		}
-			
-
 		ret += '\n';
 	}
 
@@ -275,7 +301,7 @@ int main()
 	assert(c.type() == column::TYPE::STRING);
 	assert(c.size() == 256);
 
-	int n = 100000;
+	int n = 500000;
 	for (auto& c : cols)
 	{
 		c.reserve(n);
@@ -351,6 +377,20 @@ int main()
 
 	cout << "Took " << sw.stop() << " ms to save ALL to file" << endl;
 	cout << endl;
+
+	// sorting:
+	for (auto& c : cols)
+	{
+		sw.start();
+		c.sort();
+		cout << "took " << sw.stop() << " ms to sort column: " << c.name() << endl;
+		auto firstval = c.values()[0];
+		cout << "First value in column is: " << firstval << endl;
+		cout << "Length of first value in column is: " << firstval.length() << endl;
+		cout << "Column data length is: " << c.size() << endl << endl << endl;
+	}
+
+	cout << "done";
 	/*/
 
 	entry_t myentry;
