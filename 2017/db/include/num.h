@@ -34,7 +34,7 @@ namespace cpp
 			static impl i = TAG::BAD;
 			return i;
 		}
-
+		bool is_valid() const { return m_val != TAG::BAD; }
 		friend std::ostream& operator << (std::ostream& os, const num& n)
 		{
 			return os << n.m_val;

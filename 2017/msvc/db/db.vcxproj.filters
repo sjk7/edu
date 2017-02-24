@@ -62,5 +62,8 @@
     <ClInclude Include="..\..\db\include\utils.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\db\include\sorting.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

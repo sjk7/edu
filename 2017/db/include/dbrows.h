@@ -9,6 +9,7 @@
 #include "utils.h" // filesize()
 #include <unordered_map>
 
+
 namespace cpp
 {
 	namespace db
@@ -46,13 +47,14 @@ namespace cpp
 				using uid_t = cpp::db::uid_t;
 				using idx_t = cpp::db::rowidx_t;
 				friend struct rows_t; // already forward declared for header
+				
 
 				template <typename T>
 				static inline void pop(columns_t& cols, const rowidx_t row, column::idx_t colindex, const T& t)
 				{
 					assert(colindex < cols.size_s() && "pop() (row): bad column index.");
 					auto& col = cols[colindex];
-					col.value_set(row, t);
+					col.value_set(row, t, uid_t());
 				}
 
 				template <typename T, typename... ARGS>
@@ -126,8 +128,17 @@ namespace cpp
 					}
 
 					auto& cols = *m_cols;
+					auto idx = m_idx;
 					auto& col = cols[colname];
-					auto& value = col.value(m_idx);
+
+					if (cols.m_sortstate.sortcol &&
+						cols.m_sortstate.sortcol == &col) {
+						uid_t u = cols.sorted_uid_from_index(m_idx);
+						
+
+					}
+	
+					auto& value = col.value(idx);
 					return value;
 				}
 
@@ -155,19 +166,19 @@ namespace cpp
 					THROW_ASSERT(m_idx != ROW_INVALID, -1, "pop_default_columns(): invalid row");
 					columns_t& cols = *m_cols;
 
-					auto& uc = cols["uid"];
+					auto& uc = cols[0];
 					auto& col = cols[0]; (void)col;
 					assert(&uc == &col);
 
 
 					uc.value_set(m_idx, m_uid);
-					auto& dc = cols["created"];
+					auto& dc = cols[1];
 
 					if (dc.value(m_idx).empty()) {
-						dc.value_set(m_idx, now_gmt());
+						dc.value_set(m_idx, now_gmt(), m_uid);
 					}
 
-					cols["modified"].value_set(m_idx, now_gmt());
+					cols[2].value_set(m_idx, now_gmt(), m_uid);
 
 				}
 
@@ -199,7 +210,7 @@ namespace cpp
 					assert(m_tmp.capacity() > 0); // caller should reserve() it to the largest column for efficiency.
 					column::idx_t colidx = 0;
 
-					for (column* pc : m_cols->vector()) {
+					for (column* pc : m_cols->vector_non_const()) {
 						pc->value_fixed_length(rwidx, m_tmp);
 						sret.append(m_tmp);
 						colidx++;
@@ -235,9 +246,13 @@ namespace cpp
 
 		}; // struct row_t
 
+
+
 		struct rows_t {
 
 			NO_COPY (rows_t);
+
+			friend struct core;
 
 				using uid_t = cpp::db::uid_t;
 				using idx_t = cpp::db::rowidx_t;
@@ -275,6 +290,7 @@ namespace cpp
 					THROW_ASSERT(div == 0,  -1, "Bad storage size.");
 					auto num_records = data_size / rec_size;
 					return num_records;
+
 				}
 
 				void read_all()
@@ -320,14 +336,21 @@ namespace cpp
 
 				}
 
-				rowidx_t row_from_uid(const uid_t& uid) const
+				row_t row_from_uid(const uid_t& uid) const
+				{
+					assert(uid.is_valid() && "why isn't the uid valid?");
+					rowidx_t idx = row_idx_from_uid(uid);
+					return row_t(idx, &m_columns);
+				}
+
+				rowidx_t row_idx_from_uid(const uid_t& uid) const
 				{
 					const auto& m = m_umap;
 					const auto e = m.end();
 					const auto it = m.find(uid.value());
 
 					if (it == e) {
-						return rowidx_t();
+						THROW_ERR(-1, "row, correspondinf to uid: ", uid, " is not found.");
 					}
 					assert(it->second == uid.value());
 					return rowidx_t(it->second);
@@ -393,6 +416,8 @@ namespace cpp
 						c++;
 					};
 
+					f.flush();
+					update_uids();
 					THROW_ASSERT(m_umap.size() == m_imap.size(), -1, "mapping error.");
 					m_dirtyrows.clear();
 				}
@@ -400,15 +425,37 @@ namespace cpp
 				// "dirty" rows. These need to be saved to storage
 				void dirty_add(const row_t& row)
 				{
-					// TODO: check the row's UID is unique not
-					// only in m_dirtyrows (easy coz its a map)
-					// but also in the uid_lookup
-
 					m_dirtyrows[row.index()] = row;
 				}
 
+				const rowidx_t::impl size() const {	return m_columns.rowcount();	}
+
 			protected:
 				uid_t m_uid {0};
+
+				// populates the data with the uids we have.
+				// Fail to call this after save() and only the first three columns
+				// will have uids associated with the data.
+				void update_uids() {
+
+					auto& cols = m_columns;
+					for (int i = NUM_DEFAULT_COLUMNS; i < cols.size(); ++i)
+					{
+						auto& col = cols[i];
+						const auto& uid_col = cols[0];
+						
+						rowidx_t rw(0);
+						for (auto& pr : col.values_non_const())
+						{						
+							auto uid = uid_col.value_uid(rw);
+							assert(uid.is_valid()); // seen this when you forgot to resize the rows properly when u finished adding stuff
+							pr.first = uid;
+							++rw;
+						}
+					};
+
+					std::cout << "updated";
+				}
 
 				mutable std::map<cpp::db::uid_t::impl, cpp::db::rowidx_t::impl> m_map_uid;
 
@@ -420,6 +467,7 @@ namespace cpp
 				// it's convenient if we can see the columns.
 				cols_t& m_columns;
 				header& m_head;
+				
 
 				void move_to_row_index(rowidx_t idx, header& head, bool for_writing = false)
 				{
@@ -439,6 +487,8 @@ namespace cpp
 
 					assert(f);
 				}
+
+
 		}; // struct rows_t
 
 

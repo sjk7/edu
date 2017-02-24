@@ -122,6 +122,7 @@
     <ClInclude Include="..\..\db\include\macros.h" />
     <ClInclude Include="..\..\db\include\num.h" />
     <ClInclude Include="..\..\db\include\runtime_error.h" />
+    <ClInclude Include="..\..\db\include\sorting.h" />
     <ClInclude Include="..\..\db\include\strings.h" />
     <ClInclude Include="..\..\db\include\text_importer.h" />
     <ClInclude Include="..\..\db\include\utils.h" />

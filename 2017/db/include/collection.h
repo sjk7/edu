@@ -138,10 +138,6 @@ namespace cpp
 					return *m_vec[idx];
 				}
 
-				// I'm sure you know what you are doing,
-				// but using this for anything other than a range-based
-				// for loop is going to end in tears.
-				vec_t& vector(){ return m_vec;}
 				const vec_t& vector_const() const { return m_vec; }
 
 				const_iter cbegin() const
@@ -186,6 +182,10 @@ namespace cpp
 			protected:
 				map_t m_map;
 				vec_t m_vec;
+				// I'm sure you know what you are doing,
+				// but using this for anything other than a range-based
+				// for loop is going to end in tears.
+				vec_t& vector() { return m_vec; }
 		}; // class collection
 	} // namespace collections
 } // namespace cpp

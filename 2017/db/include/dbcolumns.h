@@ -6,10 +6,10 @@
 #include "strings.h"
 #include "collection.h"
 #include "dbtypes.h"
-
+#include <inttypes.h> //strtoumax
 #include <numeric> // std::accumulate
-
 #include <algorithm> // std::max_element
+#include "sorting.h"
 
 
 namespace cpp
@@ -18,12 +18,21 @@ namespace cpp
 
 	namespace db
 	{
-
-
+		struct column;
+		namespace detail {
+			using sortorder = cpp::sortorder;
+			
+			struct sortstate_t {
+				sortorder order{ sortorder::NONE };
+				column* sortcol{ nullptr };
+			};
+		}
 
 		struct core;
 		struct header;
 		struct columns_t;
+		struct rows_t;
+		
 
 		struct column {
 
@@ -31,7 +40,8 @@ namespace cpp
 				using idx_t = int16_t;
 				using vec_t = std::vector<valpr_t>;
 				friend struct columns_t;
-
+				friend struct core;
+				friend struct rows_t;
 
 				column() {} // must have default constructor to use in STL containers.
 				column(const std::string& name, const std::string& type_name, const idx_t idx,
@@ -80,30 +90,35 @@ namespace cpp
 					return m_values;
 				}
 
-				uid_t value_uid(const rowidx_t& idx)
+	
+
+				uid_t value_uid(const rowidx_t& idx) const
 				{
-					auto val = value(idx);
-					if (val.empty()){
-						return uid_t();
-					}
-					auto ret = std::stoi(val);
-					return uid_t(ret);
+					const auto& pr = m_values.at(idx.value());
+					return pr.first;
 				}
 
 				std::string& value(const rowidx_t& idx)
 				{
 					size_t st = idx.to_size_t();
-					// BOUNDS_CHECK(m_values, st);
 					auto& pr = m_values[st];
 					return pr.second;
 				}
 
+				// Preferred method of getting a const value.
 				void value_const(rowidx_t idx, std::string& rv) const
 				{
 					size_t st = idx.to_size_t();
-					// BOUNDS_CHECK(m_values, st);
 					const auto& pr = m_values[st];
 					rv.assign(pr.second);
+				}
+
+				// DO NOT prefer this one for efficiency, see the overload idx, std::string.
+				std::string value_const2(const rowidx_t& idx) const
+				{
+					size_t st = idx.to_size_t();
+					const auto& pr = m_values[st];
+					return pr.second;
 				}
 
 				void value_fixed_length(const rowidx_t rw, std::string& rv) const
@@ -119,7 +134,7 @@ namespace cpp
 					}
 				}
 
-				void value_set(const rowidx_t row, const std::string& value)
+				void value_set(const rowidx_t& row, const std::string& value)
 				{
 					THROW_ASSERT(row < rowcount(), -1, "Not enough rows: use ensure_enough_rows()");
 					using namespace std;
@@ -130,20 +145,21 @@ namespace cpp
 
 					auto& pr = m_values[row.to_size_t()];
 					cout << pr.first << "|" << pr.second << endl;
-					pr.first = row;
+					pr.first = uid_t();
+					assert(0);
 					pr.second = value;
 				}
 
 				// special-case setting the value of uid, since it is critical:
-				void value_set(const rowidx_t row, const uid_t uid){
+				void value_set(const rowidx_t& row, const uid_t& uid){
 
 					THROW_ASSERT(uid != UID_INVALID, -1,  "must have a valid uid when saving") ;
-					value_set(row, static_cast<uid_t::impltype>(uid));
+					value_set(row, static_cast<uid_t::impltype>(uid), uid);
 
 				}
 
 				template <typename T>
-				void value_set(const rowidx_t row, const T& value)
+				void value_set(const rowidx_t& row, const T& value, const uid_t& uid)
 				{
 					THROW_ASSERT(row < rowcount(), -1, "value_set: Not enough rows. Row is", row, " and rowcount is ", rowcount());
 
@@ -154,11 +170,12 @@ namespace cpp
 					//collections::bounds_checker(m_values, row);
 					auto& pr = m_values[row.to_size_t()];
 
-					pr.first = row;
+					pr.first = uid;
+					assert(uid.is_valid() && "invalid uid in value_set");
 					pr.second = ss.str(); // watch this in clang. it shows "" in the debugger. Not true!
 				}
 
-				void value_set(const rowidx_t row, const char* value, const size_t wid)
+				void value_set(const rowidx_t& row,  const char* value, const size_t wid, uid_t& uid)
 				{
 					using namespace cpp::strings;
 					THROW_ASSERT(value != NULL , -1, "value_set (const char*): NULL value not permitted.");
@@ -167,10 +184,18 @@ namespace cpp
 						value_set(row, ""s);
 					}
 					THROW_ASSERT(wid == width(),  -1, "value_set: incorrect width: expected ", width(), "but got: ", wid);
-
+					
+					if (m_index == 0) {
+						auto tmpuid = static_cast<uid_t::impl>(strtoimax(value, nullptr, 10));
+						// I *get* the uid for the first column, and you are expected to remember it for the rest.
+						uid = tmpuid;
+						assert(uid.value() != uid_t::INVALID_VALUE());
+					}
+					 
 					// NOTE: we store the row data without all the nulls to conserve memory
-					valpr_t val = std::make_pair(row, std::string(value));
-					//collections::bounds_checker(m_values, row);
+					assert(uid.value() != uid_t::INVALID_VALUE());
+					valpr_t val = std::make_pair(uid, std::string(value));
+					
 					m_values[row.to_size_t()] = val;
 				}
 
@@ -230,11 +255,17 @@ namespace cpp
 					}
 				}
 
+				protected:
+				vec_t&  values_non_const() { return m_values; }
 				std::string m_name;
 				column_types::TYPE m_ty { column_types::TYPE::BAD };
 				idx_t m_index { -1};
 				size_t m_width{0};
 				vec_t m_values;
+
+				rowidx_t row_index_from_uid(const uid_t& uid) {
+
+				}
 
 
 
@@ -245,6 +276,8 @@ namespace cpp
 		struct columns_t : cc_t {
 
 				friend struct  column;
+				friend struct core;
+				friend struct row_t;
 				using base_t = cc_t;
 				using K = std::string;
 				using addpr_t = base_t::addpr_t;
@@ -425,7 +458,7 @@ namespace cpp
 
 
 				// populate a row from data
-				uid_t pop_row(db::rowidx_t rwidx, const std::string& data)
+				uid_t pop_row(const db::rowidx_t& rwidx, const std::string& data)
 				{
 					uid_t ret(uid_t::INVALID_VALUE());
 					THROW_ASSERT(rwidx >= 0, -1, "pop_row(): rowindex invalid.");
@@ -438,11 +471,11 @@ namespace cpp
 					{
 						const auto wid = pcol->width();
 
-						pcol->value_set(rwidx, ptr, wid);
+						pcol->value_set(rwidx, ptr, wid, ret);
 						if (colidx == 0){
 							ret = pcol->value_uid(rwidx);
 							THROW_ASSERT(ret != uid_t::INVALID_VALUE(), -1,
-										 "pop_row(): Uids should never be invalid value");
+										 "pop_row(): UIDs should never be invalid value");
 						}
 
 						ptr += wid;
@@ -453,10 +486,47 @@ namespace cpp
 					return ret;
 				}
 
+				const vec_t& vector() const { return m_vec; }
+
+
 			protected:
 				// the one with the most data.
 				mutable column* m_largest{nullptr};
 				mutable size_t m_total_data_width{0};
+				vec_t&  vector_non_const() { return m_vec; }
+				detail::sortstate_t m_sortstate;
+				using uidvec_t = std::vector<uid_t>;
+				uidvec_t m_sort_index; // allow fast lookup of index when we are sorted.
+				
+				// NOTE: only ever use this for the currently sorted column.
+				// It would definitely better to build a vector for this when a column is sorted.
+				uid_t sorted_uid_from_index(const rowidx_t& idx)
+				{
+					assert(idx.to_size_t() < m_sort_index.size()&& "bad index in sorted_idx_from_index.");
+					uid_t u = m_sort_index[idx.to_size_t()];
+					return u;
+				}
+
+
+				void index_after_sort()
+				{
+					uidvec_t& v = m_sort_index;
+					v.clear();
+					auto rc = rowcount_u();
+					v.resize(rc);
+					assert(m_sortstate.sortcol && "index_after_sort: wrong column.");
+					auto p = m_sortstate.sortcol;
+					auto& vals = p->values();
+
+					size_t i = 0;
+					for (const auto& pr : vals)
+					{
+						v[i] = pr.first;
+					}
+
+					assert(v.size() == vals.size() && "index_after_sort: size disagreement.");
+				}
+
 
 		}; // struct columns_t
 	}

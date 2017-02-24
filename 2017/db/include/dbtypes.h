@@ -25,7 +25,7 @@ namespace cpp
 		struct uid_tag : public cpp::tag_base<int32_t, UID_INVALID>{};
 		using uid_t = cpp::num<uid_tag>;
 
-		using valpr_t = std::pair<rowidx_t, std::string>;
+		using valpr_t = std::pair<uid_t, std::string>;
 		using std::ostream;
 		static constexpr int16_t NUM_DEFAULT_COLUMNS = 3;
 		static constexpr size_t USE_DEFAULT_WIDTH = static_cast<size_t>(-1);

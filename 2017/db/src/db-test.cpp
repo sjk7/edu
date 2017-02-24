@@ -139,8 +139,9 @@ void import(cpp::text_importer& imp, cpp::db::core& db)
 
 	static const std::string FWD_SLASH("/");
 	static const std::string TAB("\t");
+	std::string path;
 
-	while (r < n)
+	while (r < n -1) // there's an empty line at the end.
 	{
 		rw = db.next_free_row();
 		rw["Artist"] = col["Artist"].m_data[r];
@@ -164,6 +165,7 @@ void import(cpp::text_importer& imp, cpp::db::core& db)
 		++r;
 	}
 
+	db.rowcount_set(cpp::db::rowidx_t(r));
 	db.save();
 
 }
@@ -197,48 +199,94 @@ void dps_db()
 
 	if (db.rowcount() < 1000){
 		cout << "Importing from DPSExport.txt ... " << endl;
+		auto t1 = cpp::timer();
 		dps_importer importer(dps_import_filename);
 		import(importer, db);
 		cout << "Import complete." << endl;
+		auto t2 = cpp::timer();
+		cout << "Import took " << t2 - t1 << " ms." << endl;
 	}
 
 
 	const auto& rows = db.rows();
+	const auto& cols = db.columns();
+	cout << "DB has " << rows.size() << " rows." << endl;
+	cout << "DB has " << cols.size() << " columns." << endl;
 
-
-#ifdef NDEBUG
-	const int n = 10000;
-#else
-	const int n = 1000;
-#endif
-	int i = 0;
-	cout << "number of iterations: " << n << endl;
-
-	int rowcount = db.rowcount();
-	int r = 0;
+	auto&  uid_col = cols["uid"];
+	cout << "Uid column has " << uid_col.rowcount() << " rows" << endl;
+	assert(uid_col.rowcount() == rows.size());
+	const auto frow = cpp::db::rowidx_t(0);
+	
+	auto& artist_col = cols["Artist"];
+	auto uid = artist_col.value_uid(frow);
+	
+	auto rw = rows.row_from_uid(uid);
+	
+	cout << "First artist has uid: " << artist_col.value_uid(frow) << endl;
+	cout << "first row has Title: " << rw["Title"] << endl;
+	cout << "First artist is: " << cols["Artist"].value_const2(frow) << endl << endl;
 
 	auto t1 = cpp::timer();
-
-	cout << "Running uid lookup test, v1 (using map) ..." << endl;
-	while (i < n){
-		r = 0;
-		while (r < rowcount){
-			volatile cpp::db::rowidx_t rw = rows.row_from_uid(cpp::db::uid_t(r));
-			(void)rw;
-			++r;
-		}
-
-		++i;
-	}
+	db.sort("Artist", cpp::sortorder::ASC);
 	auto t2 = cpp::timer();
-	auto took1 = t2 - t1;
-	cout << "Took: " << took1 << " ms." << endl;
+	
+	cout << "Took " << t2 - t1 << " ms to sort artist ascending" << endl;
+	uid = db.uid_from_index(frow);
+	uid = artist_col.value_uid(frow);
+	cout << "First artist has uid: " << uid << endl;
+	rw = rows.row_from_uid(uid);
+	cout << "first row has Title: " << rw["Title"] << endl;
+	cout << "First artist is: " << rw["Artist"] << endl << endl;
 
-	cout << "----------------------------------------------" << endl << endl;
+	t1 = cpp::timer();
+	db.sort("Artist", cpp::sortorder::ASC);
+	t2 = cpp::timer();
+	cout << "Took " << t2 - t1 << " ms to sort artist ascending (again)" << endl;
+	cout << "First artist has uid: " <<   endl;
+	rw = rows.row_from_uid(uid);
+	cout << "first row has Title: " << rw["Title"] << endl;
+	cout << "First artist is: " << artist_col.value_const2(frow) << endl << endl;
+
+	t1 = cpp::timer();
+	db.sort("Artist", cpp::sortorder::DESC);
+	t2 = cpp::timer();
+
+	cout << "Took " << t2 - t1 << " ms to sort artist descending." << endl;
+	uid = artist_col.value_uid(frow);
+	cout << "First artist has uid: " << uid  << endl;
+	rw = rows.row_from_uid(uid);
+	cout << "first row has Title: " << rw["Title"] << endl;
+	cout << "First artist is: " << artist_col.value_const2(frow) << endl << endl;
+
+
+
+	t1 = cpp::timer();
+	db.sort("Artist", cpp::sortorder::DESC);
+	t2 = cpp::timer();
+	cout << "Took " << t2 - t1 << " ms to sort artist descending (again)." << endl;
+	uid = artist_col.value_uid(frow);
+	cout << "First artist has uid: " << uid << endl;
+	rw = rows.row_from_uid(uid);
+	cout << "first row has Title: " << rw["Title"] << endl;
+	cout << "First artist is: " << artist_col.value_const2(frow) << endl << endl;
+
+
+	t1 = cpp::timer();
+	db.sort("Artist", cpp::sortorder::ASC);
+	t2 = cpp::timer();
+	cout << "Took " << t2 - t1 << " ms to sort artist ascending (again)" << endl;
+
+	uid = artist_col.value_uid(frow);
+	cout << "First artist has uid: " << uid << endl;
+	rw = rows.row_from_uid(uid);
+	cout << "first row has Title: " << rw["Title"] << endl;
+	cout << "First artist is: " << artist_col.value_const2(frow) << endl << endl;
+
 
 	std::string s;
-	//cout << "hit return to quit." << endl;
-	//getline(std::cin, s);
+	cout << "Hit return to quit." << endl;
+	getline(std::cin, s);
 	return;
 //	db.print(cout, 20);
 //	cout << endl;
