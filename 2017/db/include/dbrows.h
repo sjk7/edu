@@ -133,7 +133,7 @@ namespace cpp
 
 					if (cols.m_sortstate.sortcol &&
 						cols.m_sortstate.sortcol == &col) {
-						uid_t u = cols.sorted_uid_from_index(m_idx);
+						idx = cols.sorted_uid_from_index(m_idx);
 						
 
 					}
@@ -449,7 +449,8 @@ namespace cpp
 						{						
 							auto uid = uid_col.value_uid(rw);
 							assert(uid.is_valid()); // seen this when you forgot to resize the rows properly when u finished adding stuff
-							pr.first = uid;
+							pr.first.uid = uid;
+							pr.first.idx = rw;
 							++rw;
 						}
 					};

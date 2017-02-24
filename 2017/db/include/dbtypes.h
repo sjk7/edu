@@ -24,8 +24,18 @@ namespace cpp
 		#define UID_INVALID -1
 		struct uid_tag : public cpp::tag_base<int32_t, UID_INVALID>{};
 		using uid_t = cpp::num<uid_tag>;
-
-		using valpr_t = std::pair<uid_t, std::string>;
+		struct val_t
+		{
+			val_t(const uid_t& u, const rowidx_t r) : uid(u), idx(r) {}
+			val_t() = default;
+			val_t(val_t&&) = default;
+			val_t(const val_t& t) = default;
+			val_t& operator = (const val_t& other) = default;
+			val_t& operator = (const val_t&& other) { uid = std::move(other.uid); idx = std::move(other.idx); return *this; }
+			uid_t uid;
+			rowidx_t idx;
+		};
+		using valpr_t = std::pair<val_t, std::string>;
 		using std::ostream;
 		static constexpr int16_t NUM_DEFAULT_COLUMNS = 3;
 		static constexpr size_t USE_DEFAULT_WIDTH = static_cast<size_t>(-1);

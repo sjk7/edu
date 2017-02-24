@@ -95,7 +95,7 @@ namespace cpp
 				uid_t value_uid(const rowidx_t& idx) const
 				{
 					const auto& pr = m_values.at(idx.value());
-					return pr.first;
+					return pr.first.uid;
 				}
 
 				std::string& value(const rowidx_t& idx)
@@ -130,7 +130,7 @@ namespace cpp
 				void ensure_enough_rows(const rowidx_t row){
 					size_t srow = row.to_size_t();
 					if (srow >= rowcount_u() -1) {
-						m_values.resize(srow+1);
+						// m_values.resize(srow+1);
 					}
 				}
 
@@ -144,8 +144,8 @@ namespace cpp
 								 "values' size is: ", m_values.size());
 
 					auto& pr = m_values[row.to_size_t()];
-					cout << pr.first << "|" << pr.second << endl;
-					pr.first = uid_t();
+					cout << pr.first.uid << "|" << pr.second << endl;
+					pr.first.uid = uid_t();
 					assert(0);
 					pr.second = value;
 				}
@@ -170,7 +170,8 @@ namespace cpp
 					//collections::bounds_checker(m_values, row);
 					auto& pr = m_values[row.to_size_t()];
 
-					pr.first = uid;
+					pr.first.uid = uid;
+					pr.first.idx = row;
 					assert(uid.is_valid() && "invalid uid in value_set");
 					pr.second = ss.str(); // watch this in clang. it shows "" in the debugger. Not true!
 				}
@@ -194,7 +195,7 @@ namespace cpp
 					 
 					// NOTE: we store the row data without all the nulls to conserve memory
 					assert(uid.value() != uid_t::INVALID_VALUE());
-					valpr_t val = std::make_pair(uid, std::string(value));
+					valpr_t val = std::make_pair(val_t(uid, row), std::string(value));
 					
 					m_values[row.to_size_t()] = val;
 				}
@@ -262,11 +263,6 @@ namespace cpp
 				idx_t m_index { -1};
 				size_t m_width{0};
 				vec_t m_values;
-
-				rowidx_t row_index_from_uid(const uid_t& uid) {
-
-				}
-
 
 
 		}; // struct column
@@ -495,22 +491,22 @@ namespace cpp
 				mutable size_t m_total_data_width{0};
 				vec_t&  vector_non_const() { return m_vec; }
 				detail::sortstate_t m_sortstate;
-				using uidvec_t = std::vector<uid_t>;
-				uidvec_t m_sort_index; // allow fast lookup of index when we are sorted.
+				using idxvec_t = std::vector<rowidx_t>;
+				idxvec_t m_sort_index; // allow fast lookup of index when we are sorted.
 				
 				// NOTE: only ever use this for the currently sorted column.
 				// It would definitely better to build a vector for this when a column is sorted.
-				uid_t sorted_uid_from_index(const rowidx_t& idx)
+				rowidx_t sorted_uid_from_index(const rowidx_t& idx)
 				{
 					assert(idx.to_size_t() < m_sort_index.size()&& "bad index in sorted_idx_from_index.");
-					uid_t u = m_sort_index[idx.to_size_t()];
-					return u;
+					rowidx_t r = m_sort_index[idx.to_size_t()];
+					return r;
 				}
 
 
 				void index_after_sort()
 				{
-					uidvec_t& v = m_sort_index;
+					idxvec_t& v = m_sort_index;
 					v.clear();
 					auto rc = rowcount_u();
 					v.resize(rc);
@@ -521,7 +517,9 @@ namespace cpp
 					size_t i = 0;
 					for (const auto& pr : vals)
 					{
-						v[i] = pr.first;
+						assert(pr.first.idx.is_valid());
+						v[i] = pr.first.idx;
+						++i;
 					}
 
 					assert(v.size() == vals.size() && "index_after_sort: size disagreement.");
