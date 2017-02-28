@@ -41,6 +41,11 @@ namespace cpp
 		static constexpr size_t USE_DEFAULT_WIDTH = static_cast<size_t>(-1);
 		static constexpr size_t DEFAULT_STRING_WIDTH = 256;
 
+        struct sorter
+        {
+
+        };
+
 
 		struct column_types {
 

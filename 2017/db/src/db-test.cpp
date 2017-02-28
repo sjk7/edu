@@ -219,21 +219,21 @@ void dps_db()
 	const auto frow = cpp::db::rowidx_t(0);
 	
 	auto& artist_col = cols["Artist"];
-	auto uid = artist_col.value_uid(frow);
+	auto uid = cols.uid(frow);
 	
 	auto rw = rows.row_from_uid(uid);
 	
-	cout << "First artist has uid: " << artist_col.value_uid(frow) << endl;
+	cout << "First artist has uid: " << cols.uid(frow) << endl;
 	cout << "first row has Title: " << rw["Title"] << endl;
 	cout << "First artist is: " << cols["Artist"].value_const2(frow) << endl << endl;
 
 	auto t1 = cpp::timer();
-	db.sort("Artist", cpp::sortorder::ASC);
+	db.sort("Artist", cpp::sortorder::DESC);
 	auto t2 = cpp::timer();
 	
-	cout << "Took " << t2 - t1 << " ms to sort artist ascending" << endl;
+	cout << "Took " << t2 - t1 << " ms to sort artist descending" << endl;
 	uid = db.uid_from_index(frow);
-	uid = artist_col.value_uid(frow);
+	uid = cols.uid(frow);
 	cout << "First artist has uid: " << uid << endl;
 	rw = rows.row_from_uid(uid);
 	cout << "first row has Title: " << rw["Title"] << endl;
@@ -242,18 +242,21 @@ void dps_db()
 	t1 = cpp::timer();
 	db.sort("Artist", cpp::sortorder::ASC);
 	t2 = cpp::timer();
-	cout << "Took " << t2 - t1 << " ms to sort artist ascending (again)" << endl;
-	cout << "First artist has uid: " <<   endl;
+	cout << "Took " << t2 - t1 << " ms to sort artist ascending" << endl;
+	uid = cols.uid(frow);
+	cout << "First artist has uid: " << uid <<  endl;
 	rw = rows.row_from_uid(uid);
-	cout << "first row has Title: " << rw["Title"] << endl;
-	cout << "First artist is: " << artist_col.value_const2(frow) << endl << endl;
+	cout << "first row has Title: (from row)" << rw["Title"] << endl;
+	cout << "first row has Artist (from row): " << rw["Artist"] << endl;
+	auto alternate = artist_col.value_const2(frow);
+	cout << "First artist is: " << alternate << endl << endl;
 
 	t1 = cpp::timer();
 	db.sort("Artist", cpp::sortorder::DESC);
 	t2 = cpp::timer();
 
 	cout << "Took " << t2 - t1 << " ms to sort artist descending." << endl;
-	uid = artist_col.value_uid(frow);
+	uid = cols.uid(frow);
 	cout << "First artist has uid: " << uid  << endl;
 	rw = rows.row_from_uid(uid);
 	cout << "first row has Title: " << rw["Title"] << endl;
@@ -265,7 +268,7 @@ void dps_db()
 	db.sort("Artist", cpp::sortorder::DESC);
 	t2 = cpp::timer();
 	cout << "Took " << t2 - t1 << " ms to sort artist descending (again)." << endl;
-	uid = artist_col.value_uid(frow);
+	uid = cols.uid(frow);
 	cout << "First artist has uid: " << uid << endl;
 	rw = rows.row_from_uid(uid);
 	cout << "first row has Title: " << rw["Title"] << endl;
@@ -277,7 +280,7 @@ void dps_db()
 	t2 = cpp::timer();
 	cout << "Took " << t2 - t1 << " ms to sort artist ascending (again)" << endl;
 
-	uid = artist_col.value_uid(frow);
+	uid = cols.uid(frow);
 	cout << "First artist has uid: " << uid << endl;
 	rw = rows.row_from_uid(uid);
 	cout << "first row has Title: " << rw["Title"] << endl;
@@ -288,8 +291,8 @@ void dps_db()
 	db.sort("uid", cpp::sortorder::ASC);
 	t2 = cpp::timer();
 	cout << "Took " << t2 - t1 << " ms to sort by UID." << endl;
-	uid = uid_col.value_uid(frow);
-	cout << "First artist has uid: " << uid << endl;
+	uid = cols.uid(frow);
+	cout << "First item has uid: " << uid << endl;
 	rw = rows.row_from_uid(uid);
 	cout << "first row has Title: " << rw["Title"] << endl;
 	cout << "First artist is: " << artist_col.value_const2(frow) << endl << endl;

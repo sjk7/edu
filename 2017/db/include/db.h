@@ -170,64 +170,33 @@ namespace cpp
 			}
 
 
-			void sort(const std::string& column_name, const cpp::sortorder order)
+            void sort(const std::string& column_name, const cpp::sortorder order)
 			{
-				auto& cols = columns_non_const();
-				auto& col = cols[column_name];
-				std::cout << col.name();
-				auto& v = col.values_non_const();
+                auto& cols = columns_non_const();
+                cols.sort(column_name, order);
+				
 
-				const auto ty = col.type();
-				switch (ty)
-				{
-				case cpp::db::column_types::INT:
-				case cpp::db::column_types::INT64: // this is also good for dates, without saying anything.
-				{
-
-					sort_int_values(v, order);
-					break;
-				}
-				case cpp::db::column_types::STRING:
-				{
-					sort_string_values(v, order);
-					break;
-				}
-				default:
-					assert(0); // implement your own sort by sending the appropriate comparator
-				};
-
-				cols.m_sortstate.order = order;
-				cols.m_sortstate.sortcol = &col;
-				cols.index_after_sort();
 			}
 
-			uid_t uid_from_index(const rowidx_t& row)
+            uid_t uid_from_index(const rowidx_t& row) const
 			{
-				auto& cols = columns();
-				if (cols.empty()) {
+                auto& cols = columns();
+                if (cols.empty()) {
 					THROW_ERR(-1, "uid_from_index: no columns.");
 				}
-				auto psortcol = cols.m_sortstate.sortcol;
-				if (psortcol) 
-				{
-					return psortcol->value_uid(row);
-				}
-				else {
-					const auto& uid_col = cols[0];
-					return uid_col.value_uid(row);
-				}
-			}
+                return cols.uid_from_index(row);
+            }
 
-			rowidx_t uid_to_index(const uid_t& uid) 
-			{
+            rowidx_t uid_to_index(const uid_t& uid)  const
+            {
 				return m_rows.row_idx_from_uid(uid);
 			}
 
-			row_t row_from_uid(const uid_t& uid) {
+            row_t row_from_uid(const uid_t& uid) const{
 				return m_rows.row_from_uid(uid);
 			}
 
-			row_t row_from_index(const rowidx_t& idx)
+            row_t row_from_index(const rowidx_t& idx) const
 			{
 				uid_t u = uid_from_index(idx);
 				return m_rows.row_from_uid(u);
@@ -240,27 +209,7 @@ namespace cpp
 			
 			columns_t& columns_non_const() { return m_head.columns(); }
 
-			template <typename T>
-			void sort_int_values(T& v, const cpp::sortorder order) {
-				if (order == cpp::sortorder::ASC) {
-					std::stable_sort(v.begin(), v.end(), [](const auto& lhs, const auto& rhs) { return lhs.second < rhs.second; });
-				}
-				else {
-					std::stable_sort(v.begin(), v.end(), [](const auto& lhs, const auto& rhs) { return lhs.second > rhs.second; });
-				}
-			}
 
-			template <typename T>
-			void sort_string_values(T& v, const cpp::sortorder order) {
-				if (order == cpp::sortorder::ASC) {
-					std::stable_sort(v.begin(), v.end(), [](const auto& lhs, const auto& rhs) {
-						return _stricmp(lhs.second.c_str(), rhs.second.c_str()) < 0; });
-				}
-				else {
-					std::stable_sort(v.begin(), v.end(), [](const auto& lhs, const auto& rhs) {
-						return _stricmp(lhs.second.c_str(), rhs.second.c_str()) > 0; });
-				}
-			}
 
 
 		};// core

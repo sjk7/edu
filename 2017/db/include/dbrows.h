@@ -131,14 +131,7 @@ namespace cpp
 					auto idx = m_idx;
 					auto& col = cols[colname];
 
-					if (cols.m_sortstate.sortcol &&
-						cols.m_sortstate.sortcol == &col) {
-						idx = cols.sorted_uid_from_index(m_idx);
-						
-
-					}
-	
-					auto& value = col.value(idx);
+					auto& value = col.value(idx, true);
 					return value;
 				}
 
@@ -428,7 +421,7 @@ namespace cpp
 					m_dirtyrows[row.index()] = row;
 				}
 
-				const rowidx_t::impl size() const {	return m_columns.rowcount();	}
+                rowidx_t::impl size() const {	return m_columns.rowcount();	}
 
 			protected:
 				uid_t m_uid {0};
@@ -439,15 +432,13 @@ namespace cpp
 				void update_uids() {
 
 					auto& cols = m_columns;
-					for (int i = NUM_DEFAULT_COLUMNS; i < cols.size(); ++i)
+                    for (int i = NUM_DEFAULT_COLUMNS; i < (int)cols.size(); ++i)
 					{
 						auto& col = cols[i];
-						const auto& uid_col = cols[0];
-						
 						rowidx_t rw(0);
 						for (auto& pr : col.values_non_const())
 						{						
-							auto uid = uid_col.value_uid(rw);
+							auto uid = cols.uid(rw, true);
 							assert(uid.is_valid()); // seen this when you forgot to resize the rows properly when u finished adding stuff
 							pr.first.uid = uid;
 							pr.first.idx = rw;
